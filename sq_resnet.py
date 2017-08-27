@@ -373,7 +373,3 @@ def _create_se_resnet(classes, img_input, include_top, initial_conv_filters, fil
             x = GlobalMaxPooling2D()(x)
 
     return x
-
-if __name__ == '__main__':
-    model = SEResNet50((32, 32, 3))
-    model.summary()
