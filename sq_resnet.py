@@ -30,7 +30,7 @@ from keras.applications.resnet50 import preprocess_input
 from keras.applications.imagenet_utils import decode_predictions
 from keras import backend as K
 
-__all__ = ['SEResNet', 'SRResNet50', 'SRResNet101', 'SRResNet154', 'preprocess_input', 'decode_predictions']
+__all__ = ['SEResNet', 'SEResNet50', 'SEResNet101', 'SEResNet154', 'preprocess_input', 'decode_predictions']
 
 
 WEIGHTS_PATH = ""
@@ -143,7 +143,7 @@ def SEResNet(input_shape=None,
     return model
 
 
-def SRResNet50(input_shape=None,
+def SEResNet50(input_shape=None,
                width=1,
                bottleneck=False,
                weight_decay=1e-4,
@@ -163,7 +163,7 @@ def SRResNet50(input_shape=None,
                     classes=classes)
 
 
-def SRResNet101(input_shape=None,
+def SEResNet101(input_shape=None,
                 width=1,
                 bottleneck=False,
                 weight_decay=1e-4,
@@ -184,7 +184,7 @@ def SRResNet101(input_shape=None,
                     classes=classes)
 
 
-def SRResNet154(input_shape=None,
+def SEResNet154(input_shape=None,
                 width=1,
                 bottleneck=False,
                 weight_decay=1e-4,
