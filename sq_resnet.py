@@ -114,9 +114,9 @@ def SEResNet(input_shape=None,
     # Determine proper input shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=224,
-                                      min_size=112,
+                                      min_size=32,
                                       data_format=K.image_data_format(),
-                                      include_top=include_top)
+                                      include_top=False)
 
     if input_tensor is None:
         img_input = Input(shape=input_shape)
@@ -205,26 +205,6 @@ def SEResNet154(input_shape=None,
                     classes=classes)
 
 
-def _initial_conv_block_inception(input, initial_conv_filters, weight_decay=5e-4):
-    ''' Adds an initial conv block, with batch norm and relu
-    Args:
-        input: input tensor
-        initial_conv_filters: number of filters for initial conv block
-        weight_decay: weight decay factor
-    Returns: a keras tensor
-    '''
-    channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
-
-    x = Conv2D(initial_conv_filters, (7, 7), padding='same', use_bias=False, kernel_initializer='he_normal',
-               kernel_regularizer=l2(weight_decay), strides=(2, 2))(input)
-    x = BatchNormalization(axis=channel_axis)(x)
-    x = Activation('relu')(x)
-
-    x = MaxPooling2D((3, 3), strides=(2, 2), padding='same')(x)
-
-    return x
-
-
 def _squeeze_excite_block(input, filters, k=1):
     ''' Create a squeeze-excite block
     Args:
@@ -239,10 +219,8 @@ def _squeeze_excite_block(input, filters, k=1):
 
     se = GlobalAveragePooling2D()(init)
     se = Reshape(se_shape)(se)
-    se = Conv2D((filters * k) // 16, (1, 1), padding='same', activation='relu',
-                kernel_initializer='he_normal', use_bias=False)(se)
-    se = Conv2D(filters * k, (1, 1), padding='same', activation='sigmoid',
-                kernel_initializer='he_normal', use_bias=False)(se)
+    se = Dense((filters * k) // 16, activation='relu', kernel_initializer='he_normal', use_bias=False)(se)
+    se = Dense(filters * k, activation='sigmoid', kernel_initializer='he_normal', use_bias=False)(se)
     return se
 
 
@@ -358,7 +336,8 @@ def _create_se_resnet(classes, img_input, include_top, initial_conv_filters, fil
     N = list(depth)
 
     # block 1 (initial conv block)
-    x = _initial_conv_block_inception(img_input, initial_conv_filters, weight_decay)
+    x = Conv2D(initial_conv_filters, (7, 7), padding='same', use_bias=False, kernel_initializer='he_normal',
+               kernel_regularizer=l2(weight_decay))(img_input)
 
     # block 2 (projection block)
     for i in range(N[0]):
@@ -394,3 +373,7 @@ def _create_se_resnet(classes, img_input, include_top, initial_conv_filters, fil
             x = GlobalMaxPooling2D()(x)
 
     return x
+
+if __name__ == '__main__':
+    model = SEResNet50((32, 32, 3))
+    model.summary()

@@ -99,10 +99,8 @@ def _squeeze_excite_block(input):
 
     se = GlobalAveragePooling2D()(init)
     se = Reshape(se_shape)(se)
-    se = Conv2D(filters // 16, (1, 1), padding='same', activation='relu',
-                kernel_initializer='he_normal', use_bias=False)(se)
-    se = Conv2D(filters, (1, 1), padding='same', activation='sigmoid',
-                kernel_initializer='he_normal', use_bias=False)(se)
+    se = Dense(filters // 16,  activation='relu', kernel_initializer='he_normal', use_bias=False)(se)
+    se = Dense(filters, activation='sigmoid', kernel_initializer='he_normal', use_bias=False)(se)
     return se
 
 
