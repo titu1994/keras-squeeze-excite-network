@@ -143,9 +143,51 @@ def SEResNet(input_shape=None,
     return model
 
 
-def SEResNet50(input_shape=None,
+def SEResNet18(input_shape=None,
                width=1,
                bottleneck=False,
+               weight_decay=1e-4,
+               include_top=True,
+               weights=None,
+               input_tensor=None,
+               pooling=None,
+               classes=1000):
+    return SEResNet(input_shape,
+                    depth=[2, 2, 2, 2],
+                    width=width,
+                    bottleneck=bottleneck,
+                    weight_decay=weight_decay,
+                    include_top=include_top,
+                    weights=weights,
+                    input_tensor=input_tensor,
+                    pooling=pooling,
+                    classes=classes)
+
+
+def SEResNet34(input_shape=None,
+               width=1,
+               bottleneck=False,
+               weight_decay=1e-4,
+               include_top=True,
+               weights=None,
+               input_tensor=None,
+               pooling=None,
+               classes=1000):
+    return SEResNet(input_shape,
+                    depth=[3, 4, 6, 3],
+                    width=width,
+                    bottleneck=bottleneck,
+                    weight_decay=weight_decay,
+                    include_top=include_top,
+                    weights=weights,
+                    input_tensor=input_tensor,
+                    pooling=pooling,
+                    classes=classes)
+
+
+def SEResNet50(input_shape=None,
+               width=1,
+               bottleneck=True,
                weight_decay=1e-4,
                include_top=True,
                weights=None,
@@ -165,7 +207,7 @@ def SEResNet50(input_shape=None,
 
 def SEResNet101(input_shape=None,
                 width=1,
-                bottleneck=False,
+                bottleneck=True,
                 weight_decay=1e-4,
                 include_top=True,
                 weights=None,
@@ -186,7 +228,7 @@ def SEResNet101(input_shape=None,
 
 def SEResNet154(input_shape=None,
                 width=1,
-                bottleneck=False,
+                bottleneck=True,
                 weight_decay=1e-4,
                 include_top=True,
                 weights=None,
@@ -279,7 +321,7 @@ def _resnet_bottleneck_block(input, filters, k=1, strides=(1, 1)):
     x = BatchNormalization(axis=channel_axis)(input)
     x = Activation('relu')(x)
 
-    if strides != (1, 1) or init._keras_shape[channel_axis] != filters * k:
+    if strides != (1, 1) or init._keras_shape[channel_axis] != bottleneck_expand * filters * k:
         init = Conv2D(bottleneck_expand * filters * k, (1, 1), padding='same', kernel_initializer='he_normal',
                       use_bias=False, strides=strides)(x)
 
@@ -294,7 +336,7 @@ def _resnet_bottleneck_block(input, filters, k=1, strides=(1, 1)):
     x = Activation('relu')(x)
 
     x = Conv2D(bottleneck_expand * filters * k, (1, 1), padding='same', kernel_initializer='he_normal',
-               use_bias=False, strides=strides)(x)
+               use_bias=False)(x)
 
     # squeeze and excite block
     se = _squeeze_excite_block(x, bottleneck_expand * filters, k)
@@ -336,8 +378,10 @@ def _create_se_resnet(classes, img_input, include_top, initial_conv_filters, fil
     N = list(depth)
 
     # block 1 (initial conv block)
-    x = Conv2D(initial_conv_filters, (7, 7), padding='same', use_bias=False, kernel_initializer='he_normal',
-               kernel_regularizer=l2(weight_decay))(img_input)
+    x = Conv2D(initial_conv_filters, (7, 7), padding='same', use_bias=False, strides=(2, 2),
+               kernel_initializer='he_normal', kernel_regularizer=l2(weight_decay))(img_input)
+
+    x = MaxPooling2D((3, 3), strides=(2, 2), padding='same')(x)
 
     # block 2 (projection block)
     for i in range(N[0]):
