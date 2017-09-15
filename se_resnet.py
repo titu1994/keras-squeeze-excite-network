@@ -116,7 +116,7 @@ def SEResNet(input_shape=None,
                                       default_size=224,
                                       min_size=32,
                                       data_format=K.image_data_format(),
-                                      include_top=False)
+                                      require_flatten=False)
 
     if input_tensor is None:
         img_input = Input(shape=input_shape)
