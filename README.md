@@ -12,6 +12,7 @@ Current models supported :
 - SE-ResNeXt
 
 Additional models (not from the paper, not verified if they improve performance)
+- SE-MobileNets
 - SE-DenseNet - Custom SE-DenseNets can be built using `SEDenseNet` model builder, whereas prebuilt SEDenseNet models such as `SEDenseNetImageNet121`, `SEDenseNetImageNet169`, `SEDenseNetImageNet161`, `SEDenseNetImageNet201` and `SEDenseNetImageNet264` can be build DenseNet in ImageNet configuration. To use SEDenseNet in CIFAR mode, use the `SEDenseNet` model builder.
 
 ## Squeeze and Excitation block
