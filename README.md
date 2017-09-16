@@ -17,7 +17,7 @@ Additional models (not from the paper, not verified if they improve performance)
 
 ## Squeeze and Excitation block
 The block is simple to implement in Keras. It composes of a GlobalAveragePooling2D, 2 Dense blocks and an elementwise multiplication.
-Shape inference can be done automatically in Keras.
+Shape inference can be done automatically in Keras. It can be imported from `se.py`.
 
 ```python
 def squeeze_excite_block(input, ratio=16):
