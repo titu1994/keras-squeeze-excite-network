@@ -34,6 +34,7 @@ from keras import backend as K
 from keras.applications.imagenet_utils import decode_predictions
 from keras.applications.imagenet_utils import _obtain_input_shape
 
+from se import squeeze_excite_block
 
 WEIGHTS_PATH = ''
 WEIGHTS_PATH_NO_TOP = ''
@@ -81,27 +82,6 @@ def _conv2d_bn(x,
     x = BatchNormalization(axis=bn_axis, scale=False, name=bn_name)(x)
     x = Activation('relu', name=name)(x)
     return x
-
-
-def _squeeze_excite_block(input):
-    ''' Create a squeeze-excite block
-    Args:
-        input: input tensor
-        filters: number of output filters
-        k: width factor
-
-    Returns: a keras tensor
-    '''
-    init = input
-    channel_axis = 1 if K.image_data_format() == "channels_first" else -1
-    filters = init._keras_shape[channel_axis]
-    se_shape = (1, 1, filters) if K.image_data_format() == 'channels_last' else (filters, 1, 1)
-
-    se = GlobalAveragePooling2D()(init)
-    se = Reshape(se_shape)(se)
-    se = Dense(filters // 16,  activation='relu', kernel_initializer='he_normal', use_bias=False)(se)
-    se = Dense(filters, activation='sigmoid', kernel_initializer='he_normal', use_bias=False)(se)
-    return se
 
 
 def SEInceptionV3(include_top=True,
@@ -205,8 +185,7 @@ def SEInceptionV3(include_top=True,
         name='mixed0')
 
     # squeeze and excite block
-    se = _squeeze_excite_block(x)
-    x = layers.multiply([x, se])
+    x = squeeze_excite_block(x)
 
     # mixed 1: 35 x 35 x 256
     branch1x1 = _conv2d_bn(x, 64, 1, 1)
@@ -226,8 +205,7 @@ def SEInceptionV3(include_top=True,
         name='mixed1')
 
     # squeeze and excite block
-    se = _squeeze_excite_block(x)
-    x = layers.multiply([x, se])
+    x = squeeze_excite_block(x)
 
     # mixed 2: 35 x 35 x 256
     branch1x1 = _conv2d_bn(x, 64, 1, 1)
@@ -247,8 +225,7 @@ def SEInceptionV3(include_top=True,
         name='mixed2')
 
     # squeeze and excite block
-    se = _squeeze_excite_block(x)
-    x = layers.multiply([x, se])
+    x = squeeze_excite_block(x)
 
     # mixed 3: 17 x 17 x 768
     branch3x3 = _conv2d_bn(x, 384, 3, 3, strides=(2, 2), padding='valid')
@@ -263,8 +240,7 @@ def SEInceptionV3(include_top=True,
         [branch3x3, branch3x3dbl, branch_pool], axis=channel_axis, name='mixed3')
 
     # squeeze and excite block
-    se = _squeeze_excite_block(x)
-    x = layers.multiply([x, se])
+    x = squeeze_excite_block(x)
 
     # mixed 4: 17 x 17 x 768
     branch1x1 = _conv2d_bn(x, 192, 1, 1)
@@ -287,8 +263,7 @@ def SEInceptionV3(include_top=True,
         name='mixed4')
 
     # squeeze and excite block
-    se = _squeeze_excite_block(x)
-    x = layers.multiply([x, se])
+    x = squeeze_excite_block(x)
 
     # mixed 5, 6: 17 x 17 x 768
     for i in range(2):
@@ -313,8 +288,7 @@ def SEInceptionV3(include_top=True,
             name='mixed' + str(5 + i))
 
         # squeeze and excite block
-        se = _squeeze_excite_block(x)
-        x = layers.multiply([x, se])
+        x = squeeze_excite_block(x)
 
     # mixed 7: 17 x 17 x 768
     branch1x1 = _conv2d_bn(x, 192, 1, 1)
@@ -337,8 +311,7 @@ def SEInceptionV3(include_top=True,
         name='mixed7')
 
     # squeeze and excite block
-    se = _squeeze_excite_block(x)
-    x = layers.multiply([x, se])
+    x = squeeze_excite_block(x)
 
     # mixed 8: 8 x 8 x 1280
     branch3x3 = _conv2d_bn(x, 192, 1, 1)
@@ -356,8 +329,7 @@ def SEInceptionV3(include_top=True,
         [branch3x3, branch7x7x3, branch_pool], axis=channel_axis, name='mixed8')
 
     # squeeze and excite block
-    se = _squeeze_excite_block(x)
-    x = layers.multiply([x, se])
+    x = squeeze_excite_block(x)
 
     # mixed 9: 8 x 8 x 2048
     for i in range(2):
@@ -385,8 +357,7 @@ def SEInceptionV3(include_top=True,
             name='mixed' + str(9 + i))
 
         # squeeze and excite block
-        se = _squeeze_excite_block(x)
-        x = layers.multiply([x, se])
+        x = squeeze_excite_block(x)
 
     if include_top:
         # Classification block

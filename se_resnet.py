@@ -30,6 +30,8 @@ from keras.applications.resnet50 import preprocess_input
 from keras.applications.imagenet_utils import decode_predictions
 from keras import backend as K
 
+from se import squeeze_excite_block
+
 __all__ = ['SEResNet', 'SEResNet50', 'SEResNet101', 'SEResNet154', 'preprocess_input', 'decode_predictions']
 
 
@@ -247,25 +249,6 @@ def SEResNet154(input_shape=None,
                     classes=classes)
 
 
-def _squeeze_excite_block(input, filters, k=1):
-    ''' Create a squeeze-excite block
-    Args:
-        input: input tensor
-        filters: number of output filters
-        k: width factor
-
-    Returns: a keras tensor
-    '''
-    init = input
-    se_shape = (1, 1, filters * k) if K.image_data_format() == 'channels_last' else (filters * k, 1, 1)
-
-    se = GlobalAveragePooling2D()(init)
-    se = Reshape(se_shape)(se)
-    se = Dense((filters * k) // 16, activation='relu', kernel_initializer='he_normal', use_bias=False)(se)
-    se = Dense(filters * k, activation='sigmoid', kernel_initializer='he_normal', use_bias=False)(se)
-    return se
-
-
 def _resnet_block(input, filters, k=1, strides=(1, 1)):
     ''' Adds a pre-activation resnet block without bottleneck layers
 
@@ -296,8 +279,7 @@ def _resnet_block(input, filters, k=1, strides=(1, 1)):
                use_bias=False)(x)
 
     # squeeze and excite block
-    se = _squeeze_excite_block(x, filters, k)
-    x = multiply([x, se])
+    x = squeeze_excite_block(x)
 
     m = add([x, init])
     return m
@@ -339,8 +321,7 @@ def _resnet_bottleneck_block(input, filters, k=1, strides=(1, 1)):
                use_bias=False)(x)
 
     # squeeze and excite block
-    se = _squeeze_excite_block(x, bottleneck_expand * filters, k)
-    x = multiply([x, se])
+    x = squeeze_excite_block(x)
 
     m = add([x, init])
     return m
