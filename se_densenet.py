@@ -63,7 +63,7 @@ def preprocess_input(x, data_format=None):
         x[..., 1] -= 116.779
         x[..., 2] -= 123.68
 
-    x *= 0.017 # scale values
+    x *= 0.017  # scale values
 
     return x
 
