@@ -394,12 +394,12 @@ def SEMobileNet(input_shape=None,
             shape = (1, 1, int(1024 * alpha))
 
         x = GlobalAveragePooling2D()(x)
-        x = Reshape(shape, name='reshape_1')(x)
+        x = Reshape(shape, name='reshape_n_1')(x)
         x = Dropout(dropout, name='dropout')(x)
         x = Conv2D(classes, (1, 1),
                    padding='same', name='conv_preds')(x)
         x = Activation('softmax', name='act_softmax')(x)
-        x = Reshape((classes,), name='reshape_2')(x)
+        x = Reshape((classes,), name='reshape_final')(x)
     else:
         if pooling == 'avg':
             x = GlobalAveragePooling2D()(x)
