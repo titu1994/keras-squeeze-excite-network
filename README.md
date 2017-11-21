@@ -1,5 +1,5 @@
 # Squeeze and Excitation Networks in Keras
-Implementation of [Squeeze and Excitation Networks](https://arxiv.org/pdf/1709.01507.pdf) in Keras 2.0+.
+Implementation of [Squeeze and Excitation Networks](https://arxiv.org/pdf/1709.01507.pdf) in Keras 2.0.3+.
 
 <img src="https://github.com/titu1994/keras-squeeze-excite-network/blob/master/images/squeeze-excite-block.JPG?raw=true" height=50% width=100%>
 
