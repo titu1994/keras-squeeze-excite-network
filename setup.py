@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(name='keras-squeeze-excite-network',
       version='0.1',
@@ -6,5 +6,5 @@ setup(name='keras-squeeze-excite-network',
       url='https://github.com/titu1994/keras-squeeze-excite-network.git',
       author='Somshubra Majumdar',
       author_email='titu1994@gmail.com',
-      packages=find_packages(),
+      packages=['keras_squeeze_excite_network'],
       zip_safe=False)
