@@ -44,7 +44,7 @@ def spatial_squeeze_excite_block(input):
     '''
 
     se = Conv2D(1, (1, 1), activation='sigmoid', use_bias=False,
-                kernel_initializer='he_normal')
+                kernel_initializer='he_normal')(input)
 
     x = multiply([input, se])
     return x
