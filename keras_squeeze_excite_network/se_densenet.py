@@ -3,31 +3,32 @@
 - [Densely Connected Convolutional Networks](https://arxiv.org/pdf/1608.06993.pdf)
 - [The One Hundred Layers Tiramisu: Fully Convolutional DenseNets for Semantic Segmentation](https://arxiv.org/pdf/1611.09326.pdf)
 """
-from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import print_function
 
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Dense, Dropout, Activation
-from tensorflow.keras.layers import Conv2D
+import tensorflow.keras.backend as K
 from tensorflow.keras.layers import AveragePooling2D, MaxPooling2D
+from tensorflow.keras.layers import BatchNormalization
+from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import Dense, Dropout, Activation
 from tensorflow.keras.layers import GlobalAveragePooling2D
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import concatenate
-from tensorflow.keras.layers.normalization import BatchNormalization
+from tensorflow.keras.models import Model
 from tensorflow.keras.regularizers import l2
-from tensorflow.keras.engine.topology import get_source_inputs
-from tensorflow.keras.applications.imagenet_utils import _obtain_input_shape
-import tensorflow.keras.backend as K
+from tensorflow.python.keras.backend import is_keras_tensor
+from tensorflow.python.keras.utils import get_source_inputs
 
 from keras_squeeze_excite_network.se import squeeze_excite_block
+from keras_squeeze_excite_network.utils import _obtain_input_shape
 
 
 def preprocess_input(x, data_format=None):
     """Preprocesses a tensor encoding a batch of images.
 
     # Arguments
-        x: input Numpy tensor, 4D.
+        x: tensor Numpy tensor, 4D.
         data_format: data format of the image tensor.
 
     # Returns
@@ -82,7 +83,7 @@ def SEDenseNet(input_shape=None,
     """Instantiate the SE DenseNet architecture
         # Arguments
             input_shape: optional shape tuple, only to be specified
-                if `include_top` is False (otherwise the input shape
+                if `include_top` is False (otherwise the tensor shape
                 has to be `(32, 32, 3)` (with `channels_last` dim ordering)
                 or `(3, 32, 32)` (with `channels_first` dim ordering).
                 It should have exactly 3 inputs channels,
@@ -111,7 +112,7 @@ def SEDenseNet(input_shape=None,
             weights: one of `None` (random initialization) or
                 'imagenet' (pre-training on ImageNet)..
             input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-                to use as image input for the model.
+                to use as image tensor for the model.
             classes: optional number of classes to classify images
                 into, only to be specified if `include_top` is True, and
                 if no `weights` argument is specified.
@@ -136,7 +137,7 @@ def SEDenseNet(input_shape=None,
     if activation == 'sigmoid' and classes != 1:
         raise ValueError('sigmoid activation can only be used when classes = 1')
 
-    # Determine proper input shape
+    # Determine proper tensor shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=32,
                                       min_size=8,
@@ -146,7 +147,7 @@ def SEDenseNet(input_shape=None,
     if input_tensor is None:
         img_input = Input(shape=input_shape)
     else:
-        if not K.is_keras_tensor(input_tensor):
+        if not is_keras_tensor(input_tensor):
             img_input = Input(tensor=input_tensor, shape=input_shape)
         else:
             img_input = input_tensor
@@ -326,7 +327,6 @@ def __transition_block(ip, nb_filter, compression=1.0, weight_decay=1e-4):
         nb_filter: number of filters
         compression: calculated as 1 - reduction. Reduces the number of feature maps
                     in the transition block.
-        dropout_rate: dropout rate
         weight_decay: weight decay factor
     Returns: keras tensor, after applying batch_norm, relu-conv, dropout, maxpool
     """
@@ -368,7 +368,6 @@ def __create_dense_net(nb_classes, img_input, include_top, depth=40, nb_dense_bl
         weight_decay: weight decay rate
         subsample_initial_block: Set to True to subsample the initial convolution and
                 add a MaxPool2D before the dense blocks are added.
-        subsample_initial:
         activation: Type of activation at the top layer. Can be one of 'softmax' or 'sigmoid'.
                 Note that if sigmoid is used, classes must be 1.
     Returns: keras tensor with nb_layers of conv_block appended

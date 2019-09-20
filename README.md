@@ -24,8 +24,8 @@ from tensorflow.keras.layers import GlobalAveragePooling2D, Reshape, Dense, Perm
 import tensorflow.keras.backend as K
 
 
-def squeeze_excite_block(input, ratio=16):
-    init = input
+def squeeze_excite_block(tensor, ratio=16):
+    init = tensor
     channel_axis = 1 if K.image_data_format() == "channels_first" else -1
     filters = init._keras_shape[channel_axis]
     se_shape = (1, 1, filters)

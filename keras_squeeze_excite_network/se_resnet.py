@@ -5,35 +5,32 @@ References:
     - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)
     - []() # added when paper is published on Arxiv
 """
-from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import print_function
 
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.layers import Reshape
+from tensorflow.keras import backend as K
+from tensorflow.keras.applications.resnet50 import preprocess_input
 from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.layers import MaxPooling2D
+from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import GlobalAveragePooling2D
 from tensorflow.keras.layers import GlobalMaxPooling2D
-from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import Input
+from tensorflow.keras.layers import MaxPooling2D
 from tensorflow.keras.layers import add
-from tensorflow.keras.layers import multiply
+from tensorflow.keras.models import Model
 from tensorflow.keras.regularizers import l2
-from tensorflow.keras.utils import conv_utils
-from tensorflow.keras.utils.data_utils import get_file
-from tensorflow.keras.engine.topology import get_source_inputs
-from tensorflow.keras.applications.imagenet_utils import _obtain_input_shape
-from tensorflow.keras.applications.resnet50 import preprocess_input
-from tensorflow.keras.applications.imagenet_utils import decode_predictions
-from tensorflow.keras import backend as K
+from tensorflow.python.keras.applications.imagenet_utils import decode_predictions
+from tensorflow.python.keras.backend import is_keras_tensor
+from tensorflow.python.keras.utils import get_source_inputs
 
 from keras_squeeze_excite_network.se import squeeze_excite_block
+from keras_squeeze_excite_network.utils import _obtain_input_shape
 
-__all__ = ['SEResNet', 'SEResNet50', 'SEResNet101', 'SEResNet154', 'preprocess_input', 'decode_predictions']
-
+__all__ = ['SEResNet', 'SEResNet50', 'SEResNet101', 'SEResNet154',
+           'preprocess_input', 'decode_predictions']
 
 WEIGHTS_PATH = ""
 WEIGHTS_PATH_NO_TOP = ""
@@ -75,9 +72,9 @@ def SEResNet(input_shape=None,
             weights: `None` (random initialization) or `imagenet` (trained
                 on ImageNet)
             input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-                to use as image input for the model.
+                to use as image tensor for the model.
             input_shape: optional shape tuple, only to be specified
-                if `include_top` is False (otherwise the input shape
+                if `include_top` is False (otherwise the tensor shape
                 has to be `(224, 224, 3)` (with `tf` dim ordering)
                 or `(3, 224, 224)` (with `th` dim ordering).
                 It should have exactly 3 inputs channels,
@@ -113,7 +110,7 @@ def SEResNet(input_shape=None,
     assert len(depth) == len(filters), "The length of filter increment list must match the length " \
                                        "of the depth list."
 
-    # Determine proper input shape
+    # Determine proper tensor shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=224,
                                       min_size=32,
@@ -123,7 +120,7 @@ def SEResNet(input_shape=None,
     if input_tensor is None:
         img_input = Input(shape=input_shape)
     else:
-        if not K.is_keras_tensor(input_tensor):
+        if not is_keras_tensor(input_tensor):
             img_input = Input(tensor=input_tensor, shape=input_shape)
         else:
             img_input = input_tensor
@@ -249,21 +246,21 @@ def SEResNet154(input_shape=None,
                     classes=classes)
 
 
-def _resnet_block(input, filters, k=1, strides=(1, 1)):
+def _resnet_block(tensor, filters, k=1, strides=(1, 1)):
     """ Adds a pre-activation resnet block without bottleneck layers
 
     Args:
-        input: input tensor
+        tensor: input tensor
         filters: number of output filters
         k: width factor
         strides: strides of the convolution layer
 
     Returns: a keras tensor
     """
-    init = input
+    init = tensor
     channel_axis = 1 if K.image_data_format() == "channels_first" else -1
 
-    x = BatchNormalization(axis=channel_axis)(input)
+    x = BatchNormalization(axis=channel_axis)(tensor)
     x = Activation('relu')(x)
 
     if strides != (1, 1) or init._keras_shape[channel_axis] != filters * k:
@@ -285,22 +282,22 @@ def _resnet_block(input, filters, k=1, strides=(1, 1)):
     return m
 
 
-def _resnet_bottleneck_block(input, filters, k=1, strides=(1, 1)):
+def _resnet_bottleneck_block(tensor, filters, k=1, strides=(1, 1)):
     """ Adds a pre-activation resnet block with bottleneck layers
 
     Args:
-        input: input tensor
+        tensor: input tensor
         filters: number of output filters
         k: width factor
         strides: strides of the convolution layer
 
     Returns: a keras tensor
     """
-    init = input
+    init = tensor
     channel_axis = 1 if K.image_data_format() == "channels_first" else -1
     bottleneck_expand = 4
 
-    x = BatchNormalization(axis=channel_axis)(input)
+    x = BatchNormalization(axis=channel_axis)(tensor)
     x = Activation('relu')(x)
 
     if strides != (1, 1) or init._keras_shape[channel_axis] != bottleneck_expand * filters * k:

@@ -28,12 +28,13 @@ from tensorflow.keras.layers import GlobalMaxPooling2D
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Lambda
 from tensorflow.keras.layers import MaxPooling2D
-from tensorflow.keras.engine.topology import get_source_inputs
-from tensorflow.keras.applications import imagenet_utils
-from tensorflow.keras.applications.imagenet_utils import _obtain_input_shape
 from tensorflow.keras import backend as K
+from tensorflow.python.keras.applications import imagenet_utils
+from tensorflow.python.keras.backend import is_keras_tensor
+from tensorflow.python.keras.utils import get_source_inputs
 
 from keras_squeeze_excite_network.se import squeeze_excite_block
+from keras_squeeze_excite_network.utils import _obtain_input_shape
 
 
 def preprocess_input(x):
@@ -175,8 +176,8 @@ def SEInceptionResNetV2(include_top=True,
     The model and the weights are compatible with both TensorFlow and Theano
     backends (but not CNTK). The data format convention used by the model is
     the one specified in your Keras config file.
-    Note that the default input image size for this model is 299x299, instead
-    of 224x224 as in the VGG16 and ResNet models. Also, the input preprocessing
+    Note that the default tensor image size for this model is 299x299, instead
+    of 224x224 as in the VGG16 and ResNet models. Also, the tensor preprocessing
     function is different (i.e., do not use `imagenet_utils.preprocess_input()`
     with this model. Use `preprocess_input()` defined in this module instead).
     # Arguments
@@ -185,9 +186,9 @@ def SEInceptionResNetV2(include_top=True,
         weights: one of `None` (random initialization)
             or `'imagenet'` (pre-training on ImageNet).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
+            to use as image tensor for the model.
         input_shape: optional shape tuple, only to be specified
-            if `include_top` is `False` (otherwise the input shape
+            if `include_top` is `False` (otherwise the tensor shape
             has to be `(299, 299, 3)` (with `'channels_last'` data format)
             or `(3, 299, 299)` (with `'channels_first'` data format).
             It should have exactly 3 inputs channels,
@@ -209,7 +210,7 @@ def SEInceptionResNetV2(include_top=True,
         A Keras `Model` instance.
     # Raises
         ValueError: in case of invalid argument for `weights`,
-            or invalid input shape.
+            or invalid tensor shape.
         RuntimeError: If attempting to run this model with an unsupported backend.
     """
     if K.backend() in {'cntk'}:
@@ -224,7 +225,7 @@ def SEInceptionResNetV2(include_top=True,
         raise ValueError('If using `weights` as imagenet with `include_top`'
                          ' as true, `classes` should be 1000')
 
-    # Determine proper input shape
+    # Determine proper tensor shape
     input_shape = _obtain_input_shape(
         input_shape,
         default_size=299,
@@ -236,7 +237,7 @@ def SEInceptionResNetV2(include_top=True,
     if input_tensor is None:
         img_input = Input(shape=input_shape)
     else:
-        if not K.is_keras_tensor(input_tensor):
+        if not is_keras_tensor(input_tensor):
             img_input = Input(tensor=input_tensor, shape=input_shape)
         else:
             img_input = input_tensor

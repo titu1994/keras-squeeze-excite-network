@@ -7,6 +7,7 @@ from __future__ import division
 from __future__ import print_function
 
 import tensorflow.keras.backend as K
+from keras_applications.imagenet_utils import _obtain_input_shape
 from tensorflow.keras.layers import BatchNormalization
 from tensorflow.keras.layers import Conv2D
 from tensorflow.keras.layers import Dense, Lambda
@@ -16,6 +17,7 @@ from tensorflow.keras.layers import LeakyReLU
 from tensorflow.keras.layers import concatenate, add
 from tensorflow.keras.models import Model
 from tensorflow.keras.regularizers import l2
+from tensorflow.python.keras.backend import is_keras_tensor
 from tensorflow.python.keras.utils import get_source_inputs
 
 from keras_squeeze_excite_network.se import squeeze_excite_block
@@ -59,9 +61,9 @@ def SEResNext(input_shape=None,
                 layer at the top of the network.
             weights: `None` (random initialization)
             input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-                to use as image input for the model.
+                to use as image tensor for the model.
             input_shape: optional shape tuple, only to be specified
-                if `include_top` is False (otherwise the input shape
+                if `include_top` is False (otherwise the tensor shape
                 has to be `(32, 32, 3)` (with `tf` dim ordering)
                 or `(3, 32, 32)` (with `th` dim ordering).
                 It should have exactly 3 inputs channels,
@@ -99,7 +101,7 @@ def SEResNext(input_shape=None,
             raise ValueError('Depth of the network must be such that (depth - 2)'
                              'should be divisible by 9.')
 
-    # Determine proper input shape
+    # Determine proper tensor shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=32,
                                       min_size=8,
@@ -109,7 +111,7 @@ def SEResNext(input_shape=None,
     if input_tensor is None:
         img_input = Input(shape=input_shape)
     else:
-        if not K.is_keras_tensor(input_tensor):
+        if not is_keras_tensor(input_tensor):
             img_input = Input(tensor=input_tensor, shape=input_shape)
         else:
             img_input = input_tensor
@@ -160,9 +162,9 @@ def SEResNextImageNet(input_shape=None,
             weights: `None` (random initialization) or `imagenet` (trained
                 on ImageNet)
             input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-                to use as image input for the model.
+                to use as image tensor for the model.
             input_shape: optional shape tuple, only to be specified
-                if `include_top` is False (otherwise the input shape
+                if `include_top` is False (otherwise the tensor shape
                 has to be `(224, 224, 3)` (with `tf` dim ordering)
                 or `(3, 224, 224)` (with `th` dim ordering).
                 It should have exactly 3 inputs channels,
@@ -198,7 +200,7 @@ def SEResNextImageNet(input_shape=None,
     if type(depth) == int and (depth - 2) % 9 != 0:
         raise ValueError('Depth of the network must be such that (depth - 2)'
                          'should be divisible by 9.')
-    # Determine proper input shape
+    # Determine proper tensor shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=224,
                                       min_size=112,
@@ -208,7 +210,7 @@ def SEResNextImageNet(input_shape=None,
     if input_tensor is None:
         img_input = Input(shape=input_shape)
     else:
-        if not K.is_keras_tensor(input_tensor):
+        if not is_keras_tensor(input_tensor):
             img_input = Input(tensor=input_tensor, shape=input_shape)
         else:
             img_input = input_tensor
@@ -228,34 +230,34 @@ def SEResNextImageNet(input_shape=None,
     return model
 
 
-def __initial_conv_block(input, weight_decay=5e-4):
+def __initial_conv_block(tensor, weight_decay=5e-4):
     """ Adds an initial convolution block, with batch normalization and relu activation
     Args:
-        input: input tensor
+        tensor: input tensor
         weight_decay: weight decay factor
     Returns: a keras tensor
     """
     channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
     x = Conv2D(64, (3, 3), padding='same', use_bias=False, kernel_initializer='he_normal',
-               kernel_regularizer=l2(weight_decay))(input)
+               kernel_regularizer=l2(weight_decay))(tensor)
     x = BatchNormalization(axis=channel_axis)(x)
     x = LeakyReLU()(x)
 
     return x
 
 
-def __initial_conv_block_inception(input, weight_decay=5e-4):
+def __initial_conv_block_inception(tensor, weight_decay=5e-4):
     """ Adds an initial conv block, with batch norm and relu for the inception resnext
     Args:
-        input: input tensor
+        tensor: input tensor
         weight_decay: weight decay factor
     Returns: a keras tensor
     """
     channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
     x = Conv2D(64, (7, 7), padding='same', use_bias=False, kernel_initializer='he_normal',
-               kernel_regularizer=l2(weight_decay), strides=(2, 2))(input)
+               kernel_regularizer=l2(weight_decay), strides=(2, 2))(tensor)
     x = BatchNormalization(axis=channel_axis)(x)
     x = LeakyReLU()(x)
 
@@ -264,17 +266,17 @@ def __initial_conv_block_inception(input, weight_decay=5e-4):
     return x
 
 
-def __grouped_convolution_block(input, grouped_channels, cardinality, strides, weight_decay=5e-4):
+def __grouped_convolution_block(tensor, grouped_channels, cardinality, strides, weight_decay=5e-4):
     """ Adds a grouped convolution block. It is an equivalent block from the paper
     Args:
-        input: input tensor
+        tensor: input tensor
         grouped_channels: grouped number of filters
         cardinality: cardinality factor describing the number of groups
         strides: performs strided convolution for downscaling if > 1
         weight_decay: weight decay term
     Returns: a keras tensor
     """
-    init = input
+    init = tensor
     channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
     group_list = []
@@ -290,7 +292,7 @@ def __grouped_convolution_block(input, grouped_channels, cardinality, strides, w
     for c in range(cardinality):
         x = Lambda(lambda z: z[:, :, :, c * grouped_channels:(c + 1) * grouped_channels]
         if K.image_data_format() == 'channels_last' else
-        lambda z: z[:, c * grouped_channels:(c + 1) * grouped_channels, :, :])(input)
+        lambda z: z[:, c * grouped_channels:(c + 1) * grouped_channels, :, :])(tensor)
 
         x = Conv2D(grouped_channels, (3, 3), padding='same', use_bias=False, strides=(strides, strides),
                    kernel_initializer='he_normal', kernel_regularizer=l2(weight_decay))(x)
@@ -304,10 +306,10 @@ def __grouped_convolution_block(input, grouped_channels, cardinality, strides, w
     return x
 
 
-def __bottleneck_block(input, filters=64, cardinality=8, strides=1, weight_decay=5e-4):
+def __bottleneck_block(tensor, filters=64, cardinality=8, strides=1, weight_decay=5e-4):
     """ Adds a bottleneck block
     Args:
-        input: input tensor
+        tensor: input tensor
         filters: number of output filters
         cardinality: cardinality factor described number of
             grouped convolutions
@@ -315,12 +317,12 @@ def __bottleneck_block(input, filters=64, cardinality=8, strides=1, weight_decay
         weight_decay: weight decay factor
     Returns: a keras tensor
     """
-    init = input
+    init = tensor
 
     grouped_channels = int(filters / cardinality)
     channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
-    # Check if input number of filters is same as 16 * k, else create convolution2d for this input
+    # Check if tensor number of filters is same as 16 * k, else create convolution2d for this tensor
     if K.image_data_format() == 'channels_first':
         if init._keras_shape[1] != 2 * filters:
             init = Conv2D(filters * 2, (1, 1), padding='same', strides=(strides, strides),
@@ -333,7 +335,7 @@ def __bottleneck_block(input, filters=64, cardinality=8, strides=1, weight_decay
             init = BatchNormalization(axis=channel_axis)(init)
 
     x = Conv2D(filters, (1, 1), padding='same', use_bias=False,
-               kernel_initializer='he_normal', kernel_regularizer=l2(weight_decay))(input)
+               kernel_initializer='he_normal', kernel_regularizer=l2(weight_decay))(tensor)
     x = BatchNormalization(axis=channel_axis)(x)
     x = LeakyReLU()(x)
 

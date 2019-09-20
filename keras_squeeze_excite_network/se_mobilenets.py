@@ -20,14 +20,14 @@ from tensorflow.keras.layers import Conv2D
 from tensorflow.keras import initializers
 from tensorflow.keras import regularizers
 from tensorflow.keras import constraints
-from tensorflow.keras.utils import conv_utils
-from tensorflow.keras.engine.topology import get_source_inputs
-from tensorflow.keras.engine import InputSpec
-from tensorflow.keras.applications import imagenet_utils
-from tensorflow.keras.applications.imagenet_utils import _obtain_input_shape
 from tensorflow.keras import backend as K
+from tensorflow.python.keras.applications import imagenet_utils
+from tensorflow.python.keras.backend import is_keras_tensor, depthwise_conv2d
+from tensorflow.python.keras.engine import InputSpec
+from tensorflow.python.keras.utils import conv_utils, get_source_inputs
 
 from keras_squeeze_excite_network.se import squeeze_excite_block
+from keras_squeeze_excite_network.utils import _obtain_input_shape
 
 
 def relu6(x):
@@ -48,9 +48,9 @@ class DepthwiseConv2D(Conv2D):
     """Depthwise separable 2D convolution.
     Depthwise Separable convolutions consists in performing
     just the first step in a depthwise spatial convolution
-    (which acts on each input channel separately).
+    (which acts on each tensor channel separately).
     The `depth_multiplier` argument controls how many
-    output channels are generated per input channel in the depthwise step.
+    output channels are generated per tensor channel in the depthwise step.
     # Arguments
         kernel_size: An integer or tuple/list of 2 integers, specifying the
             width and height of the 2D convolution window.
@@ -64,7 +64,7 @@ class DepthwiseConv2D(Conv2D):
             any `dilation_rate` value != 1.
         padding: one of `'valid'` or `'same'` (case-insensitive).
         depth_multiplier: The number of depthwise convolution output channels
-            for each input channel.
+            for each tensor channel.
             The total number of depthwise convolution output
             channels will be equal to `filters_in * depth_multiplier`.
         data_format: A string,
@@ -149,7 +149,7 @@ class DepthwiseConv2D(Conv2D):
     def build(self, input_shape):
         if len(input_shape) < 4:
             raise ValueError('Inputs to `DepthwiseConv2D` should have rank 4. '
-                             'Received input shape:', str(input_shape))
+                             'Received tensor shape:', str(input_shape))
         if self.data_format == 'channels_first':
             channel_axis = 1
         else:
@@ -179,12 +179,12 @@ class DepthwiseConv2D(Conv2D):
                                         constraint=self.bias_constraint)
         else:
             self.bias = None
-        # Set input spec.
+        # Set tensor spec.
         self.input_spec = InputSpec(ndim=4, axes={channel_axis: input_dim})
         self.built = True
 
     def call(self, inputs, training=None):
-        outputs = K.depthwise_conv2d(
+        outputs = depthwise_conv2d(
             inputs,
             self.depthwise_kernel,
             strides=self.strides,
@@ -261,7 +261,7 @@ def SEMobileNet(input_shape=None,
                        'DepthwiseConv2D': mobilenet.DepthwiseConv2D})
     # Arguments
         input_shape: optional shape tuple, only to be specified
-            if `include_top` is False (otherwise the input shape
+            if `include_top` is False (otherwise the tensor shape
             has to be `(224, 224, 3)` (with `channels_last` data format)
             or (3, 224, 224) (with `channels_first` data format).
             It should have exactly 3 inputs channels,
@@ -283,7 +283,7 @@ def SEMobileNet(input_shape=None,
             `imagenet` (ImageNet weights)
         input_tensor: optional Keras tensor (i.e. output of
             `layers.Input()`)
-            to use as image input for the model.
+            to use as image tensor for the model.
         pooling: Optional pooling mode for feature extraction
             when `include_top` is `False`.
             - `None` means that the output of the model
@@ -303,7 +303,7 @@ def SEMobileNet(input_shape=None,
         A Keras model instance.
     # Raises
         ValueError: in case of invalid argument for `weights`,
-            or invalid input shape.
+            or invalid tensor shape.
         RuntimeError: If attempting to run this model with a
             backend that does not support separable convolutions.
     """
@@ -322,7 +322,7 @@ def SEMobileNet(input_shape=None,
         raise ValueError('If using `weights` as ImageNet with `include_top` '
                          'as true, `classes` should be 1000')
 
-    # Determine proper input shape and default size.
+    # Determine proper tensor shape and default size.
     if input_shape is None:
         default_size = 224
     else:
@@ -350,12 +350,12 @@ def SEMobileNet(input_shape=None,
     else:
         row_axis, col_axis = (1, 2)
     rows = input_shape[row_axis]
-    cols = input_shape[col_axis]
+    # cols = input_shape[col_axis]
 
     if input_tensor is None:
         img_input = Input(shape=input_shape)
     else:
-        if not K.is_keras_tensor(input_tensor):
+        if not is_keras_tensor(input_tensor):
             img_input = Input(tensor=input_tensor, shape=input_shape)
         else:
             img_input = input_tensor
@@ -488,7 +488,7 @@ def _depthwise_conv_block(inputs, pointwise_conv_filters, alpha,
             - If `alpha` = 1, default number of filters from the paper
                  are used at each layer.
         depth_multiplier: The number of depthwise convolution output channels
-            for each input channel.
+            for each tensor channel.
             The total number of depthwise convolution output
             channels will be equal to `filters_in * depth_multiplier`.
         strides: An integer or tuple/list of 2 integers,
