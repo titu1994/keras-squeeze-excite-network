@@ -71,9 +71,9 @@ def SEResNext(input_shape=None,
                 layer at the top of the network.
             weights: `None` (random initialization)
             input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-                to use as image tensor for the model.
+                to use as image input for the model.
             input_shape: optional shape tuple, only to be specified
-                if `include_top` is False (otherwise the tensor shape
+                if `include_top` is False (otherwise the input tensor shape
                 has to be `(32, 32, 3)` (with `tf` dim ordering)
                 or `(3, 32, 32)` (with `th` dim ordering).
                 It should have exactly 3 inputs channels,
@@ -111,7 +111,7 @@ def SEResNext(input_shape=None,
             raise ValueError('Depth of the network must be such that (depth - 2)'
                              'should be divisible by 9.')
 
-    # Determine proper tensor shape
+    # Determine proper input tensor shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=32,
                                       min_size=8,
@@ -172,9 +172,9 @@ def SEResNextImageNet(input_shape=None,
             weights: `None` (random initialization) or `imagenet` (trained
                 on ImageNet)
             input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-                to use as image tensor for the model.
+                to use as image input for the model.
             input_shape: optional shape tuple, only to be specified
-                if `include_top` is False (otherwise the tensor shape
+                if `include_top` is False (otherwise the input tensor shape
                 has to be `(224, 224, 3)` (with `tf` dim ordering)
                 or `(3, 224, 224)` (with `th` dim ordering).
                 It should have exactly 3 inputs channels,
@@ -210,7 +210,7 @@ def SEResNextImageNet(input_shape=None,
     if type(depth) == int and (depth - 2) % 9 != 0:
         raise ValueError('Depth of the network must be such that (depth - 2)'
                          'should be divisible by 9.')
-    # Determine proper tensor shape
+    # Determine proper input tensor shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=224,
                                       min_size=112,
@@ -332,7 +332,7 @@ def __bottleneck_block(tensor, filters=64, cardinality=8, strides=1, weight_deca
     grouped_channels = int(filters / cardinality)
     channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
-    # Check if tensor number of filters is same as 16 * k, else create convolution2d for this tensor
+    # Check if input tensor number of filters is same as 16 * k, else create convolution2d for this input tensor
     if K.image_data_format() == 'channels_first':
         if init._keras_shape[1] != 2 * filters:
             init = Conv2D(filters * 2, (1, 1), padding='same', strides=(strides, strides),

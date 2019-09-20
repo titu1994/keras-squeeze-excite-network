@@ -93,7 +93,7 @@ def SEDenseNet(input_shape=None,
     """Instantiate the SE DenseNet architecture
         # Arguments
             input_shape: optional shape tuple, only to be specified
-                if `include_top` is False (otherwise the tensor shape
+                if `include_top` is False (otherwise the input tensor shape
                 has to be `(32, 32, 3)` (with `channels_last` dim ordering)
                 or `(3, 32, 32)` (with `channels_first` dim ordering).
                 It should have exactly 3 inputs channels,
@@ -122,7 +122,7 @@ def SEDenseNet(input_shape=None,
             weights: one of `None` (random initialization) or
                 'imagenet' (pre-training on ImageNet)..
             input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-                to use as image tensor for the model.
+                to use as image input for the model.
             classes: optional number of classes to classify images
                 into, only to be specified if `include_top` is True, and
                 if no `weights` argument is specified.
@@ -147,7 +147,7 @@ def SEDenseNet(input_shape=None,
     if activation == 'sigmoid' and classes != 1:
         raise ValueError('sigmoid activation can only be used when classes = 1')
 
-    # Determine proper tensor shape
+    # Determine proper input tensor shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=32,
                                       min_size=8,

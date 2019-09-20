@@ -2,9 +2,9 @@
 
 Major portions of this code is adapted from the applications folder of Keras.
 
-Note that the tensor image format for this model is different than for
+Note that the input tensor image format for this model is different than for
 the VGG16 and ResNet models (299x299 instead of 224x224),
-and that the tensor preprocessing function is also different (same as Xception).
+and that the input tensor preprocessing function is also different (same as Xception).
 
 # Reference
     - [Rethinking the Inception Architecture for Computer Vision](http://arxiv.org/abs/1512.00567)
@@ -101,9 +101,9 @@ def SEInceptionV3(include_top=True,
         weights: one of `None` (random initialization)
             or "imagenet" (pre-training on ImageNet).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image tensor for the model.
+            to use as image input for the model.
         input_shape: optional shape tuple, only to be specified
-            if `include_top` is False (otherwise the tensor shape
+            if `include_top` is False (otherwise the input tensor shape
             has to be `(299, 299, 3)` (with `channels_last` data format)
             or `(3, 299, 299)` (with `channels_first` data format).
             It should have exactly 3 inputs channels,
@@ -129,7 +129,7 @@ def SEInceptionV3(include_top=True,
 
     # Raises
         ValueError: in case of invalid argument for `weights`,
-            or invalid tensor shape.
+            or invalid input tensor shape.
     """
     if weights not in {'imagenet', None}:
         raise ValueError('The `weights` argument should be either '
@@ -140,7 +140,7 @@ def SEInceptionV3(include_top=True,
         raise ValueError('If using `weights` as imagenet with `include_top`'
                          ' as true, `classes` should be 1000')
 
-    # Determine proper tensor shape
+    # Determine proper input tensor shape
     input_shape = _obtain_input_shape(
         input_shape,
         default_size=299,

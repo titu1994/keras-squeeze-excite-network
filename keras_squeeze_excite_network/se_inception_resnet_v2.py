@@ -7,7 +7,7 @@ https://github.com/tensorflow/models/blob/master/slim/nets/inception_resnet_v2.p
 Pre-trained ImageNet weights are also converted from TF-slim, which can be found in:
 https://github.com/tensorflow/models/tree/master/slim#pre-trained-models
 
-Original code from tensorflow.keras applications
+Original code from Keras applications
 
 # Reference
 - [Inception-v4, Inception-ResNet and the Impact of
@@ -181,7 +181,7 @@ def SEInceptionResNetV2(include_top=True,
     The model and the weights are compatible with both TensorFlow and Theano
     backends (but not CNTK). The data format convention used by the model is
     the one specified in your Keras config file.
-    Note that the default tensor image size for this model is 299x299, instead
+    Note that the default input tensor image size for this model is 299x299, instead
     of 224x224 as in the VGG16 and ResNet models. Also, the tensor preprocessing
     function is different (i.e., do not use `imagenet_utils.preprocess_input()`
     with this model. Use `preprocess_input()` defined in this module instead).
@@ -191,9 +191,9 @@ def SEInceptionResNetV2(include_top=True,
         weights: one of `None` (random initialization)
             or `'imagenet'` (pre-training on ImageNet).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image tensor for the model.
+            to use as image input for the model.
         input_shape: optional shape tuple, only to be specified
-            if `include_top` is `False` (otherwise the tensor shape
+            if `include_top` is `False` (otherwise the input tensor shape
             has to be `(299, 299, 3)` (with `'channels_last'` data format)
             or `(3, 299, 299)` (with `'channels_first'` data format).
             It should have exactly 3 inputs channels,
@@ -215,7 +215,7 @@ def SEInceptionResNetV2(include_top=True,
         A Keras `Model` instance.
     # Raises
         ValueError: in case of invalid argument for `weights`,
-            or invalid tensor shape.
+            or invalid input tensor shape.
         RuntimeError: If attempting to run this model with an unsupported backend.
     """
     if K.backend() in {'cntk'}:
@@ -230,7 +230,7 @@ def SEInceptionResNetV2(include_top=True,
         raise ValueError('If using `weights` as imagenet with `include_top`'
                          ' as true, `classes` should be 1000')
 
-    # Determine proper tensor shape
+    # Determine proper input tensor shape
     input_shape = _obtain_input_shape(
         input_shape,
         default_size=299,

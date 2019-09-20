@@ -81,9 +81,9 @@ def SEResNet(input_shape=None,
             weights: `None` (random initialization) or `imagenet` (trained
                 on ImageNet)
             input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-                to use as image tensor for the model.
+                to use as image input for the model.
             input_shape: optional shape tuple, only to be specified
-                if `include_top` is False (otherwise the tensor shape
+                if `include_top` is False (otherwise the input tensor shape
                 has to be `(224, 224, 3)` (with `tf` dim ordering)
                 or `(3, 224, 224)` (with `th` dim ordering).
                 It should have exactly 3 inputs channels,
@@ -119,7 +119,7 @@ def SEResNet(input_shape=None,
     assert len(depth) == len(filters), "The length of filter increment list must match the length " \
                                        "of the depth list."
 
-    # Determine proper tensor shape
+    # Determine proper input tensor shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=224,
                                       min_size=32,

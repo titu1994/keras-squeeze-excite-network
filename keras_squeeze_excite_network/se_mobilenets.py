@@ -69,7 +69,7 @@ class DepthwiseConv2D(Conv2D):
             any `dilation_rate` value != 1.
         padding: one of `'valid'` or `'same'` (case-insensitive).
         depth_multiplier: The number of depthwise convolution output channels
-            for each tensor channel.
+            for each input channel.
             The total number of depthwise convolution output
             channels will be equal to `filters_in * depth_multiplier`.
         data_format: A string,
@@ -184,7 +184,7 @@ class DepthwiseConv2D(Conv2D):
                                         constraint=self.bias_constraint)
         else:
             self.bias = None
-        # Set tensor spec.
+        # Set input spec.
         self.input_spec = InputSpec(ndim=4, axes={channel_axis: input_dim})
         self.built = True
 
@@ -266,7 +266,7 @@ def SEMobileNet(input_shape=None,
                        'DepthwiseConv2D': mobilenet.DepthwiseConv2D})
     # Arguments
         input_shape: optional shape tuple, only to be specified
-            if `include_top` is False (otherwise the tensor shape
+            if `include_top` is False (otherwise the input tensor shape
             has to be `(224, 224, 3)` (with `channels_last` data format)
             or (3, 224, 224) (with `channels_first` data format).
             It should have exactly 3 inputs channels,
@@ -288,7 +288,7 @@ def SEMobileNet(input_shape=None,
             `imagenet` (ImageNet weights)
         input_tensor: optional Keras tensor (i.e. output of
             `layers.Input()`)
-            to use as image tensor for the model.
+            to use as image input for the model.
         pooling: Optional pooling mode for feature extraction
             when `include_top` is `False`.
             - `None` means that the output of the model
@@ -308,7 +308,7 @@ def SEMobileNet(input_shape=None,
         A Keras model instance.
     # Raises
         ValueError: in case of invalid argument for `weights`,
-            or invalid tensor shape.
+            or invalid input tensor shape.
         RuntimeError: If attempting to run this model with a
             backend that does not support separable convolutions.
     """
@@ -327,7 +327,7 @@ def SEMobileNet(input_shape=None,
         raise ValueError('If using `weights` as ImageNet with `include_top` '
                          'as true, `classes` should be 1000')
 
-    # Determine proper tensor shape and default size.
+    # Determine proper input tensor shape and default size.
     if input_shape is None:
         default_size = 224
     else:
@@ -493,7 +493,7 @@ def _depthwise_conv_block(inputs, pointwise_conv_filters, alpha,
             - If `alpha` = 1, default number of filters from the paper
                  are used at each layer.
         depth_multiplier: The number of depthwise convolution output channels
-            for each tensor channel.
+            for each input channel.
             The total number of depthwise convolution output
             channels will be equal to `filters_in * depth_multiplier`.
         strides: An integer or tuple/list of 2 integers,
