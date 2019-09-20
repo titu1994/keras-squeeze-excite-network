@@ -1,36 +1,36 @@
-'''
+"""
 Squeeze-and-Excitation ResNets
 
 References:
     - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)
     - []() # added when paper is published on Arxiv
-'''
+"""
 from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
 
-from keras.models import Model
-from keras.layers import Input
-from keras.layers import Dense
-from keras.layers import Reshape
-from keras.layers import Activation
-from keras.layers import BatchNormalization
-from keras.layers import MaxPooling2D
-from keras.layers import GlobalAveragePooling2D
-from keras.layers import GlobalMaxPooling2D
-from keras.layers import Conv2D
-from keras.layers import add
-from keras.layers import multiply
-from keras.regularizers import l2
-from keras.utils import conv_utils
-from keras.utils.data_utils import get_file
-from keras.engine.topology import get_source_inputs
-from keras.applications.imagenet_utils import _obtain_input_shape
-from keras.applications.resnet50 import preprocess_input
-from keras.applications.imagenet_utils import decode_predictions
-from keras import backend as K
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Reshape
+from tensorflow.keras.layers import Activation
+from tensorflow.keras.layers import BatchNormalization
+from tensorflow.keras.layers import MaxPooling2D
+from tensorflow.keras.layers import GlobalAveragePooling2D
+from tensorflow.keras.layers import GlobalMaxPooling2D
+from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import add
+from tensorflow.keras.layers import multiply
+from tensorflow.keras.regularizers import l2
+from tensorflow.keras.utils import conv_utils
+from tensorflow.keras.utils.data_utils import get_file
+from tensorflow.keras.engine.topology import get_source_inputs
+from tensorflow.keras.applications.imagenet_utils import _obtain_input_shape
+from tensorflow.keras.applications.resnet50 import preprocess_input
+from tensorflow.keras.applications.imagenet_utils import decode_predictions
+from tensorflow.keras import backend as K
 
-from se import squeeze_excite_block
+from keras_squeeze_excite_network.se import squeeze_excite_block
 
 __all__ = ['SEResNet', 'SEResNet50', 'SEResNet101', 'SEResNet154', 'preprocess_input', 'decode_predictions']
 
@@ -250,7 +250,7 @@ def SEResNet154(input_shape=None,
 
 
 def _resnet_block(input, filters, k=1, strides=(1, 1)):
-    ''' Adds a pre-activation resnet block without bottleneck layers
+    """ Adds a pre-activation resnet block without bottleneck layers
 
     Args:
         input: input tensor
@@ -259,7 +259,7 @@ def _resnet_block(input, filters, k=1, strides=(1, 1)):
         strides: strides of the convolution layer
 
     Returns: a keras tensor
-    '''
+    """
     init = input
     channel_axis = 1 if K.image_data_format() == "channels_first" else -1
 
@@ -286,7 +286,7 @@ def _resnet_block(input, filters, k=1, strides=(1, 1)):
 
 
 def _resnet_bottleneck_block(input, filters, k=1, strides=(1, 1)):
-    ''' Adds a pre-activation resnet block with bottleneck layers
+    """ Adds a pre-activation resnet block with bottleneck layers
 
     Args:
         input: input tensor
@@ -295,7 +295,7 @@ def _resnet_bottleneck_block(input, filters, k=1, strides=(1, 1)):
         strides: strides of the convolution layer
 
     Returns: a keras tensor
-    '''
+    """
     init = input
     channel_axis = 1 if K.image_data_format() == "channels_first" else -1
     bottleneck_expand = 4
@@ -329,7 +329,7 @@ def _resnet_bottleneck_block(input, filters, k=1, strides=(1, 1)):
 
 def _create_se_resnet(classes, img_input, include_top, initial_conv_filters, filters,
                       depth, width, bottleneck, weight_decay, pooling):
-    '''Creates a SE ResNet model with specified parameters
+    """Creates a SE ResNet model with specified parameters
     Args:
         initial_conv_filters: number of features for the initial convolution
         include_top: Flag to include the last dense layer
@@ -354,7 +354,7 @@ def _create_se_resnet(classes, img_input, include_top, initial_conv_filters, fil
             - `max` means that global max pooling will
                 be applied.
     Returns: a Keras Model
-    '''
+    """
     channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
     N = list(depth)
 

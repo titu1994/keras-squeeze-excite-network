@@ -1,29 +1,24 @@
-'''ResNeXt models for Keras.
+"""ResNeXt models for Keras.
 # Reference
 - [Aggregated Residual Transformations for Deep Neural Networks](https://arxiv.org/pdf/1611.05431.pdf))
-'''
-from __future__ import print_function
+"""
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import print_function
 
-import warnings
+import tensorflow.keras.backend as K
+from tensorflow.keras.layers import BatchNormalization
+from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import Dense, Lambda
+from tensorflow.keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D, MaxPooling2D
+from tensorflow.keras.layers import Input
+from tensorflow.keras.layers import LeakyReLU
+from tensorflow.keras.layers import concatenate, add
+from tensorflow.keras.models import Model
+from tensorflow.keras.regularizers import l2
+from tensorflow.python.keras.utils import get_source_inputs
 
-from keras.models import Model
-from keras.layers.core import Dense, Lambda
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import Conv2D
-from keras.layers.pooling import GlobalAveragePooling2D, GlobalMaxPooling2D, MaxPooling2D
-from keras.layers import Input
-from keras.layers.merge import concatenate, add
-from keras.layers.normalization import BatchNormalization
-from keras.regularizers import l2
-from keras.utils.layer_utils import convert_all_kernels_in_model
-from keras.utils.data_utils import get_file
-from keras.engine.topology import get_source_inputs
-from keras.applications.imagenet_utils import _obtain_input_shape
-import keras.backend as K
-
-from se import squeeze_excite_block
+from keras_squeeze_excite_network.se import squeeze_excite_block
 
 CIFAR_TH_WEIGHTS_PATH = ''
 CIFAR_TF_WEIGHTS_PATH = ''
@@ -234,12 +229,12 @@ def SEResNextImageNet(input_shape=None,
 
 
 def __initial_conv_block(input, weight_decay=5e-4):
-    ''' Adds an initial convolution block, with batch normalization and relu activation
+    """ Adds an initial convolution block, with batch normalization and relu activation
     Args:
         input: input tensor
         weight_decay: weight decay factor
     Returns: a keras tensor
-    '''
+    """
     channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
     x = Conv2D(64, (3, 3), padding='same', use_bias=False, kernel_initializer='he_normal',
@@ -251,12 +246,12 @@ def __initial_conv_block(input, weight_decay=5e-4):
 
 
 def __initial_conv_block_inception(input, weight_decay=5e-4):
-    ''' Adds an initial conv block, with batch norm and relu for the inception resnext
+    """ Adds an initial conv block, with batch norm and relu for the inception resnext
     Args:
         input: input tensor
         weight_decay: weight decay factor
     Returns: a keras tensor
-    '''
+    """
     channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
     x = Conv2D(64, (7, 7), padding='same', use_bias=False, kernel_initializer='he_normal',
@@ -270,7 +265,7 @@ def __initial_conv_block_inception(input, weight_decay=5e-4):
 
 
 def __grouped_convolution_block(input, grouped_channels, cardinality, strides, weight_decay=5e-4):
-    ''' Adds a grouped convolution block. It is an equivalent block from the paper
+    """ Adds a grouped convolution block. It is an equivalent block from the paper
     Args:
         input: input tensor
         grouped_channels: grouped number of filters
@@ -278,7 +273,7 @@ def __grouped_convolution_block(input, grouped_channels, cardinality, strides, w
         strides: performs strided convolution for downscaling if > 1
         weight_decay: weight decay term
     Returns: a keras tensor
-    '''
+    """
     init = input
     channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
@@ -294,8 +289,8 @@ def __grouped_convolution_block(input, grouped_channels, cardinality, strides, w
 
     for c in range(cardinality):
         x = Lambda(lambda z: z[:, :, :, c * grouped_channels:(c + 1) * grouped_channels]
-                   if K.image_data_format() == 'channels_last' else
-                   lambda z: z[:, c * grouped_channels:(c + 1) * grouped_channels, :, :])(input)
+        if K.image_data_format() == 'channels_last' else
+        lambda z: z[:, c * grouped_channels:(c + 1) * grouped_channels, :, :])(input)
 
         x = Conv2D(grouped_channels, (3, 3), padding='same', use_bias=False, strides=(strides, strides),
                    kernel_initializer='he_normal', kernel_regularizer=l2(weight_decay))(x)
@@ -310,7 +305,7 @@ def __grouped_convolution_block(input, grouped_channels, cardinality, strides, w
 
 
 def __bottleneck_block(input, filters=64, cardinality=8, strides=1, weight_decay=5e-4):
-    ''' Adds a bottleneck block
+    """ Adds a bottleneck block
     Args:
         input: input tensor
         filters: number of output filters
@@ -319,7 +314,7 @@ def __bottleneck_block(input, filters=64, cardinality=8, strides=1, weight_decay
         strides: performs strided convolution for downsampling if > 1
         weight_decay: weight decay factor
     Returns: a keras tensor
-    '''
+    """
     init = input
 
     grouped_channels = int(filters / cardinality)
@@ -359,7 +354,7 @@ def __bottleneck_block(input, filters=64, cardinality=8, strides=1, weight_decay
 
 def __create_res_next(nb_classes, img_input, include_top, depth=29, cardinality=8, width=4,
                       weight_decay=5e-4, pooling=None):
-    ''' Creates a ResNeXt model with specified parameters
+    """ Creates a ResNeXt model with specified parameters
     Args:
         nb_classes: Number of output classes
         img_input: Input tensor or layer
@@ -384,7 +379,7 @@ def __create_res_next(nb_classes, img_input, include_top, depth=29, cardinality=
             - `max` means that global max pooling will
                 be applied.
     Returns: a Keras Model
-    '''
+    """
 
     if type(depth) is list or type(depth) is tuple:
         # If a list is provided, defer to user how many blocks are present
@@ -434,7 +429,7 @@ def __create_res_next(nb_classes, img_input, include_top, depth=29, cardinality=
 
 def __create_res_next_imagenet(nb_classes, img_input, include_top, depth, cardinality=32, width=4,
                                weight_decay=5e-4, pooling=None):
-    ''' Creates a ResNeXt model with specified parameters
+    """ Creates a ResNeXt model with specified parameters
     Args:
         nb_classes: Number of output classes
         img_input: Input tensor or layer
@@ -455,7 +450,7 @@ def __create_res_next_imagenet(nb_classes, img_input, include_top, depth, cardin
             - `max` means that global max pooling will
                 be applied.
     Returns: a Keras Model
-    '''
+    """
 
     if type(depth) is list or type(depth) is tuple:
         # If a list is provided, defer to user how many blocks are present

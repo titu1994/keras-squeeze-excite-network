@@ -20,6 +20,10 @@ The block is simple to implement in Keras. It composes of a GlobalAveragePooling
 Shape inference can be done automatically in Keras. It can be imported from `se.py`.
 
 ```python
+from tensorflow.keras.layers import GlobalAveragePooling2D, Reshape, Dense, Permute, multiply
+import tensorflow.keras.backend as K
+
+
 def squeeze_excite_block(input, ratio=16):
     init = input
     channel_axis = 1 if K.image_data_format() == "channels_first" else -1

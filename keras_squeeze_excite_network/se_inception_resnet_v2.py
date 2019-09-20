@@ -7,7 +7,7 @@ https://github.com/tensorflow/models/blob/master/slim/nets/inception_resnet_v2.p
 Pre-trained ImageNet weights are also converted from TF-slim, which can be found in:
 https://github.com/tensorflow/models/tree/master/slim#pre-trained-models
 
-Original code from Keras applications
+Original code from tensorflow.keras applications
 
 # Reference
 - [Inception-v4, Inception-ResNet and the Impact of
@@ -16,28 +16,24 @@ Original code from Keras applications
 from __future__ import print_function
 from __future__ import absolute_import
 
-import warnings
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Activation
+from tensorflow.keras.layers import AveragePooling2D
+from tensorflow.keras.layers import BatchNormalization
+from tensorflow.keras.layers import Concatenate
+from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import GlobalAveragePooling2D
+from tensorflow.keras.layers import GlobalMaxPooling2D
+from tensorflow.keras.layers import Input
+from tensorflow.keras.layers import Lambda
+from tensorflow.keras.layers import MaxPooling2D
+from tensorflow.keras.engine.topology import get_source_inputs
+from tensorflow.keras.applications import imagenet_utils
+from tensorflow.keras.applications.imagenet_utils import _obtain_input_shape
+from tensorflow.keras import backend as K
 
-from keras.models import Model
-from keras.layers import Activation
-from keras.layers import AveragePooling2D
-from keras.layers import BatchNormalization
-from keras.layers import Concatenate
-from keras.layers import Conv2D
-from keras.layers import Dense
-from keras.layers import GlobalAveragePooling2D
-from keras.layers import GlobalMaxPooling2D
-from keras.layers import Input
-from keras.layers import Lambda
-from keras.layers import MaxPooling2D
-from keras.utils.data_utils import get_file
-from keras.engine.topology import get_source_inputs
-from keras.applications import imagenet_utils
-from keras.applications.imagenet_utils import _obtain_input_shape
-from keras.applications.imagenet_utils import decode_predictions
-from keras import backend as K
-
-from se import squeeze_excite_block
+from keras_squeeze_excite_network.se import squeeze_excite_block
 
 
 def preprocess_input(x):
