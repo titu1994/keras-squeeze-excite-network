@@ -7,21 +7,31 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import tensorflow.keras.backend as K
-from tensorflow.keras.layers import AveragePooling2D, MaxPooling2D
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import Dense, Dropout, Activation
-from tensorflow.keras.layers import GlobalAveragePooling2D
-from tensorflow.keras.layers import Input
-from tensorflow.keras.layers import concatenate
-from tensorflow.keras.models import Model
-from tensorflow.keras.regularizers import l2
-from tensorflow.python.keras.backend import is_keras_tensor
-from tensorflow.python.keras.utils import get_source_inputs
+from keras_squeeze_excite_network import TF
+
+if TF:
+    import tensorflow.keras.backend as K
+    from tensorflow.keras.layers import (AveragePooling2D, MaxPooling2D, BatchNormalization,
+                                         Conv2D, Dense, Dropout, Activation, GlobalAveragePooling2D,
+                                         Input, concatenate)
+    from tensorflow.keras.models import Model
+    from tensorflow.keras.regularizers import l2
+    from tensorflow.python.keras.backend import is_keras_tensor
+    from tensorflow.python.keras.utils import get_source_inputs
+    from keras_squeeze_excite_network.utils import _obtain_input_shape
+else:
+    import keras.backend as K
+    from keras.layers import (AveragePooling2D, MaxPooling2D, BatchNormalization,
+                              Conv2D, Dense, Dropout, Activation, GlobalAveragePooling2D,
+                              Input, concatenate)
+    from keras.models import Model
+    from keras.regularizers import l2
+
+    is_keras_tensor = K.is_keras_tensor
+    from keras.utils import get_source_inputs
+    from keras_applications.imagenet_utils import _obtain_input_shape
 
 from keras_squeeze_excite_network.se import squeeze_excite_block
-from keras_squeeze_excite_network.utils import _obtain_input_shape
 
 
 def preprocess_input(x, data_format=None):
@@ -376,14 +386,14 @@ def __create_dense_net(nb_classes, img_input, include_top, depth=40, nb_dense_bl
     concat_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
     if reduction != 0.0:
-        assert reduction <= 1.0 and reduction > 0.0, 'reduction value must lie between 0.0 and 1.0'
+        assert 1.0 >= reduction > 0.0, 'reduction value must lie between 0.0 and 1.0'
 
     # layers in each dense block
     if type(nb_layers_per_block) is list or type(nb_layers_per_block) is tuple:
         nb_layers = list(nb_layers_per_block)  # Convert tuple to list
 
-        assert len(nb_layers) == (nb_dense_block), 'If list, nb_layer is used as provided. ' \
-                                                   'Note that list size must be (nb_dense_block)'
+        assert len(nb_layers) == nb_dense_block, 'If list, nb_layer is used as provided. ' \
+                                                 'Note that list size must be (nb_dense_block)'
         final_nb_layer = nb_layers[-1]
         nb_layers = nb_layers[:-1]
     else:

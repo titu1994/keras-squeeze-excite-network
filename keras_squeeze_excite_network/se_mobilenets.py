@@ -4,27 +4,32 @@
 - [MobileNets: Efficient Convolutional Neural Networks for
    Mobile Vision Applications](https://arxiv.org/pdf/1704.04861.pdf))
 """
-from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import print_function
 
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input
-from tensorflow.keras.layers import Activation
-from tensorflow.keras.layers import Dropout
-from tensorflow.keras.layers import Reshape
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.layers import GlobalAveragePooling2D
-from tensorflow.keras.layers import GlobalMaxPooling2D
-from tensorflow.keras.layers import Conv2D
-from tensorflow.keras import initializers
-from tensorflow.keras import regularizers
-from tensorflow.keras import constraints
-from tensorflow.keras import backend as K
-from tensorflow.python.keras.applications import imagenet_utils
-from tensorflow.python.keras.backend import is_keras_tensor, depthwise_conv2d
-from tensorflow.python.keras.engine import InputSpec
-from tensorflow.python.keras.utils import conv_utils, get_source_inputs
+from keras_squeeze_excite_network import TF
+
+if TF:
+    from tensorflow.keras import initializers, regularizers, constraints, backend as K
+    from tensorflow.keras.layers import (Input, Activation, Dropout, Reshape, BatchNormalization,
+                                         GlobalAveragePooling2D, GlobalMaxPooling2D, Conv2D)
+    from tensorflow.keras.models import Model
+    from tensorflow.python.keras.applications import imagenet_utils
+    from tensorflow.python.keras.backend import is_keras_tensor, depthwise_conv2d
+    from tensorflow.python.keras.engine import InputSpec
+    from tensorflow.python.keras.utils import conv_utils, get_source_inputs
+else:
+    from keras import initializers, regularizers, constraints, backend as K
+    from keras.layers import (Input, Activation, Dropout, Reshape, BatchNormalization,
+                              GlobalAveragePooling2D, GlobalMaxPooling2D, Conv2D)
+    from keras.models import Model
+    from keras.applications import imagenet_utils
+    from keras.backend import depthwise_conv2d
+    from keras.engine import InputSpec
+    from keras.utils import conv_utils, get_source_inputs
+
+    is_keras_tensor = K.is_keras_tensor
 
 from keras_squeeze_excite_network.se import squeeze_excite_block
 from keras_squeeze_excite_network.utils import _obtain_input_shape
@@ -221,9 +226,9 @@ class DepthwiseConv2D(Conv2D):
                                              self.strides[1])
 
         if self.data_format == 'channels_first':
-            return (input_shape[0], out_filters, rows, cols)
+            return input_shape[0], out_filters, rows, cols
         elif self.data_format == 'channels_last':
-            return (input_shape[0], rows, cols, out_filters)
+            return input_shape[0], rows, cols, out_filters
 
     def get_config(self):
         config = super(DepthwiseConv2D, self).get_config()

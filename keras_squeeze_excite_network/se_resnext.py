@@ -6,19 +6,29 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import tensorflow.keras.backend as K
-from keras_applications.imagenet_utils import _obtain_input_shape
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import Dense, Lambda
-from tensorflow.keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D, MaxPooling2D
-from tensorflow.keras.layers import Input
-from tensorflow.keras.layers import LeakyReLU
-from tensorflow.keras.layers import concatenate, add
-from tensorflow.keras.models import Model
-from tensorflow.keras.regularizers import l2
-from tensorflow.python.keras.backend import is_keras_tensor
-from tensorflow.python.keras.utils import get_source_inputs
+from keras_squeeze_excite_network import TF
+
+if TF:
+    import tensorflow.keras.backend as K
+    from tensorflow.keras.layers import (BatchNormalization, Conv2D, Dense, Lambda,
+                                         GlobalAveragePooling2D, GlobalMaxPooling2D,
+                                         MaxPooling2D, Input, LeakyReLU, concatenate, add)
+    from tensorflow.keras.models import Model
+    from tensorflow.keras.regularizers import l2
+    from tensorflow.python.keras.backend import is_keras_tensor
+    from tensorflow.python.keras.utils import get_source_inputs
+    from keras_squeeze_excite_network.utils import _obtain_input_shape
+else:
+    import keras.backend as K
+    from keras.layers import (BatchNormalization, Conv2D, Dense, Lambda,
+                              GlobalAveragePooling2D, GlobalMaxPooling2D,
+                              MaxPooling2D, Input, LeakyReLU, concatenate, add)
+    from keras.models import Model
+    from keras.regularizers import l2
+    from keras.utils import get_source_inputs
+    from keras_applications.imagenet_utils import _obtain_input_shape
+
+    is_keras_tensor = K.is_keras_tensor
 
 from keras_squeeze_excite_network.se import squeeze_excite_block
 
@@ -292,7 +302,7 @@ def __grouped_convolution_block(tensor, grouped_channels, cardinality, strides, 
     for c in range(cardinality):
         x = Lambda(lambda z: z[:, :, :, c * grouped_channels:(c + 1) * grouped_channels]
         if K.image_data_format() == 'channels_last' else
-        lambda z: z[:, c * grouped_channels:(c + 1) * grouped_channels, :, :])(tensor)
+        lambda _z: _z[:, c * grouped_channels:(c + 1) * grouped_channels, :, :])(tensor)
 
         x = Conv2D(grouped_channels, (3, 3), padding='same', use_bias=False, strides=(strides, strides),
                    kernel_initializer='he_normal', kernel_regularizer=l2(weight_decay))(x)

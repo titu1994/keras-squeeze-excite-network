@@ -9,22 +9,31 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from tensorflow.keras import backend as K
-from tensorflow.keras.applications.resnet50 import preprocess_input
-from tensorflow.keras.layers import Activation
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.layers import GlobalAveragePooling2D
-from tensorflow.keras.layers import GlobalMaxPooling2D
-from tensorflow.keras.layers import Input
-from tensorflow.keras.layers import MaxPooling2D
-from tensorflow.keras.layers import add
-from tensorflow.keras.models import Model
-from tensorflow.keras.regularizers import l2
-from tensorflow.python.keras.applications.imagenet_utils import decode_predictions
-from tensorflow.python.keras.backend import is_keras_tensor
-from tensorflow.python.keras.utils import get_source_inputs
+from keras_squeeze_excite_network import TF
+
+if TF:
+    from tensorflow.keras import backend as K
+    from tensorflow.keras.applications.resnet50 import preprocess_input
+    from tensorflow.keras.layers import (Activation, BatchNormalization, Conv2D, Dense,
+                                         GlobalAveragePooling2D, GlobalMaxPooling2D,
+                                         Input, MaxPooling2D, add)
+    from tensorflow.keras.models import Model
+    from tensorflow.keras.regularizers import l2
+    from tensorflow.python.keras.applications.imagenet_utils import decode_predictions
+    from tensorflow.python.keras.backend import is_keras_tensor
+    from tensorflow.python.keras.utils import get_source_inputs
+else:
+    from keras import backend as K
+    from keras.applications.resnet50 import preprocess_input
+    from keras.layers import (Activation, BatchNormalization, Conv2D, Dense,
+                              GlobalAveragePooling2D, GlobalMaxPooling2D,
+                              Input, MaxPooling2D, add)
+    from keras.models import Model
+    from keras.regularizers import l2
+    from keras.applications.imagenet_utils import decode_predictions
+    from keras.utils import get_source_inputs
+
+    is_keras_tensor = K.is_keras_tensor
 
 from keras_squeeze_excite_network.se import squeeze_excite_block
 from keras_squeeze_excite_network.utils import _obtain_input_shape

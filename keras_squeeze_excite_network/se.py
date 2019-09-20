@@ -1,5 +1,11 @@
-from tensorflow.keras.layers import GlobalAveragePooling2D, Reshape, Dense, multiply, add, Permute, Conv2D
-from tensorflow.keras import backend as K
+from keras_squeeze_excite_network import TF
+
+if TF:
+    from tensorflow.keras.layers import GlobalAveragePooling2D, Reshape, Dense, multiply, add, Permute, Conv2D
+    from tensorflow.keras import backend as K
+else:
+    from keras.layers import GlobalAveragePooling2D, Reshape, Dense, multiply, add, Permute, Conv2D
+    import keras.backend as K
 
 
 def squeeze_excite_block(tensor, ratio=16):
@@ -69,4 +75,3 @@ def channel_spatial_squeeze_excite(tensor, ratio=16):
 
     x = add([cse, sse])
     return x
-

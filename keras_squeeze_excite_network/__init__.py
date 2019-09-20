@@ -19,3 +19,10 @@ def get_logger(name=None):
 
 
 root_logger = get_logger()
+
+try:
+    from tensorflow import __version__ as tf_version
+
+    TF = True
+except ImportError:
+    TF = False
