@@ -62,7 +62,7 @@ def conv2d_bn(x,
               name=None):
     """Utility function to apply conv + BN.
     # Arguments
-        x: input tensor.
+        x: input keras tensor.
         filters: filters in `Conv2D`.
         kernel_size: kernel size as in `Conv2D`.
         padding: padding mode in `Conv2D`.
@@ -71,7 +71,7 @@ def conv2d_bn(x,
         name: name of the ops; will become `name + '_ac'` for the activation
             and `name + '_bn'` for the batch norm layer.
     # Returns
-        Output tensor after applying `Conv2D` and `BatchNormalization`.
+        Output input after applying `Conv2D` and `BatchNormalization`.
     """
     x = Conv2D(filters,
                kernel_size,
@@ -98,7 +98,7 @@ def inception_resnet_block(x, scale, block_type, block_idx, activation='relu'):
         - Inception-ResNet-B: `block_type='block17'`
         - Inception-ResNet-C: `block_type='block8'`
     # Arguments
-        x: input tensor.
+        x: input keras tensor.
         scale: scaling factor to scale the residuals (i.e., the output of
             passing `x` through an inception module) before adding them
             to the shortcut branch. Let `r` be the output from the residual branch,
@@ -115,7 +115,7 @@ def inception_resnet_block(x, scale, block_type, block_idx, activation='relu'):
             When `activation=None`, no activation is applied
             (i.e., "linear" activation: `a(x) = x`).
     # Returns
-        Output tensor for the block.
+        Output input for the block.
     # Raises
         ValueError: if `block_type` is not one of `'block35'`,
             `'block17'` or `'block8'`.
@@ -182,7 +182,7 @@ def SEInceptionResNetV2(include_top=True,
     backends (but not CNTK). The data format convention used by the model is
     the one specified in your Keras config file.
     Note that the default input tensor image size for this model is 299x299, instead
-    of 224x224 as in the VGG16 and ResNet models. Also, the tensor preprocessing
+    of 224x224 as in the VGG16 and ResNet models. Also, the input preprocessing
     function is different (i.e., do not use `imagenet_utils.preprocess_input()`
     with this model. Use `preprocess_input()` defined in this module instead).
     # Arguments
@@ -193,7 +193,7 @@ def SEInceptionResNetV2(include_top=True,
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
         input_shape: optional shape tuple, only to be specified
-            if `include_top` is `False` (otherwise the input tensor shape
+            if `include_top` is `False` (otherwise the input_tensor shape
             has to be `(299, 299, 3)` (with `'channels_last'` data format)
             or `(3, 299, 299)` (with `'channels_first'` data format).
             It should have exactly 3 inputs channels,
@@ -215,7 +215,7 @@ def SEInceptionResNetV2(include_top=True,
         A Keras `Model` instance.
     # Raises
         ValueError: in case of invalid argument for `weights`,
-            or invalid input tensor shape.
+            or invalid input_tensor shape.
         RuntimeError: If attempting to run this model with an unsupported backend.
     """
     if K.backend() in {'cntk'}:
@@ -230,7 +230,7 @@ def SEInceptionResNetV2(include_top=True,
         raise ValueError('If using `weights` as imagenet with `include_top`'
                          ' as true, `classes` should be 1000')
 
-    # Determine proper input tensor shape
+    # Determine proper input_tensor shape
     input_shape = _obtain_input_shape(
         input_shape,
         default_size=299,

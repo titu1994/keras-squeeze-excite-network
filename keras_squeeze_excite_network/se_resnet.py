@@ -83,7 +83,7 @@ def SEResNet(input_shape=None,
             input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
                 to use as image input for the model.
             input_shape: optional shape tuple, only to be specified
-                if `include_top` is False (otherwise the input tensor shape
+                if `include_top` is False (otherwise the input_tensor shape
                 has to be `(224, 224, 3)` (with `tf` dim ordering)
                 or `(3, 224, 224)` (with `th` dim ordering).
                 It should have exactly 3 inputs channels,
@@ -119,7 +119,7 @@ def SEResNet(input_shape=None,
     assert len(depth) == len(filters), "The length of filter increment list must match the length " \
                                        "of the depth list."
 
-    # Determine proper input tensor shape
+    # Determine proper input_tensor shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=224,
                                       min_size=32,
@@ -255,21 +255,21 @@ def SEResNet154(input_shape=None,
                     classes=classes)
 
 
-def _resnet_block(tensor, filters, k=1, strides=(1, 1)):
+def _resnet_block(input_tensor, filters, k=1, strides=(1, 1)):
     """ Adds a pre-activation resnet block without bottleneck layers
 
     Args:
-        tensor: input tensor
+        input_tensor: input Keras tensor
         filters: number of output filters
         k: width factor
         strides: strides of the convolution layer
 
-    Returns: a keras tensor
+    Returns: a Keras tensor
     """
-    init = tensor
+    init = input_tensor
     channel_axis = 1 if K.image_data_format() == "channels_first" else -1
 
-    x = BatchNormalization(axis=channel_axis)(tensor)
+    x = BatchNormalization(axis=channel_axis)(input_tensor)
     x = Activation('relu')(x)
 
     if strides != (1, 1) or init._keras_shape[channel_axis] != filters * k:
@@ -291,22 +291,22 @@ def _resnet_block(tensor, filters, k=1, strides=(1, 1)):
     return m
 
 
-def _resnet_bottleneck_block(tensor, filters, k=1, strides=(1, 1)):
+def _resnet_bottleneck_block(input_tensor, filters, k=1, strides=(1, 1)):
     """ Adds a pre-activation resnet block with bottleneck layers
 
     Args:
-        tensor: input tensor
+        input_tensor: input Keras tensor
         filters: number of output filters
         k: width factor
         strides: strides of the convolution layer
 
-    Returns: a keras tensor
+    Returns: a Keras tensor
     """
-    init = tensor
+    init = input_tensor
     channel_axis = 1 if K.image_data_format() == "channels_first" else -1
     bottleneck_expand = 4
 
-    x = BatchNormalization(axis=channel_axis)(tensor)
+    x = BatchNormalization(axis=channel_axis)(input_tensor)
     x = Activation('relu')(x)
 
     if strides != (1, 1) or init._keras_shape[channel_axis] != bottleneck_expand * filters * k:

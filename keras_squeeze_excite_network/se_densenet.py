@@ -35,14 +35,14 @@ from keras_squeeze_excite_network.se import squeeze_excite_block
 
 
 def preprocess_input(x, data_format=None):
-    """Preprocesses a tensor encoding a batch of images.
+    """Preprocesses a input_tensor encoding a batch of images.
 
     # Arguments
-        x: tensor Numpy tensor, 4D.
-        data_format: data format of the image tensor.
+        x: 4D Numpy input
+        data_format: data format of the image input.
 
     # Returns
-        Preprocessed tensor.
+        Preprocessed input.
     """
     if data_format is None:
         data_format = K.image_data_format()
@@ -93,7 +93,7 @@ def SEDenseNet(input_shape=None,
     """Instantiate the SE DenseNet architecture
         # Arguments
             input_shape: optional shape tuple, only to be specified
-                if `include_top` is False (otherwise the input tensor shape
+                if `include_top` is False (otherwise the input_tensor shape
                 has to be `(32, 32, 3)` (with `channels_last` dim ordering)
                 or `(3, 32, 32)` (with `channels_first` dim ordering).
                 It should have exactly 3 inputs channels,
@@ -147,7 +147,7 @@ def SEDenseNet(input_shape=None,
     if activation == 'sigmoid' and classes != 1:
         raise ValueError('sigmoid activation can only be used when classes = 1')
 
-    # Determine proper input tensor shape
+    # Determine proper input_tensor shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=32,
                                       min_size=8,
@@ -297,7 +297,7 @@ def __dense_block(x, nb_layers, nb_filter, growth_rate, bottleneck=False, dropou
                   grow_nb_filters=True, return_concat_list=False):
     """ Build a dense_block where the output of each conv_block is fed to subsequent ones
     Args:
-        x: keras tensor
+        x: keras input_tensor
         nb_layers: the number of layers of conv_block to append to the model.
         nb_filter: number of filters
         growth_rate: growth rate
@@ -333,7 +333,7 @@ def __dense_block(x, nb_layers, nb_filter, growth_rate, bottleneck=False, dropou
 def __transition_block(ip, nb_filter, compression=1.0, weight_decay=1e-4):
     """ Apply BatchNorm, Relu 1x1, Conv2D, optional compression, dropout and Maxpooling2D
     Args:
-        ip: keras tensor
+        ip: keras input_tensor
         nb_filter: number of filters
         compression: calculated as 1 - reduction. Reduces the number of feature maps
                     in the transition block.

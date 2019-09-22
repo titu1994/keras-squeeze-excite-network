@@ -53,9 +53,9 @@ class DepthwiseConv2D(Conv2D):
     """Depthwise separable 2D convolution.
     Depthwise Separable convolutions consists in performing
     just the first step in a depthwise spatial convolution
-    (which acts on each tensor channel separately).
+    (which acts on each input channel separately).
     The `depth_multiplier` argument controls how many
-    output channels are generated per tensor channel in the depthwise step.
+    output channels are generated per input channel in the depthwise step.
     # Arguments
         kernel_size: An integer or tuple/list of 2 integers, specifying the
             width and height of the 2D convolution window.
@@ -154,7 +154,7 @@ class DepthwiseConv2D(Conv2D):
     def build(self, input_shape):
         if len(input_shape) < 4:
             raise ValueError('Inputs to `DepthwiseConv2D` should have rank 4. '
-                             'Received tensor shape:', str(input_shape))
+                             'Received input shape:', str(input_shape))
         if self.data_format == 'channels_first':
             channel_axis = 1
         else:
@@ -266,7 +266,7 @@ def SEMobileNet(input_shape=None,
                        'DepthwiseConv2D': mobilenet.DepthwiseConv2D})
     # Arguments
         input_shape: optional shape tuple, only to be specified
-            if `include_top` is False (otherwise the input tensor shape
+            if `include_top` is False (otherwise the input_tensor shape
             has to be `(224, 224, 3)` (with `channels_last` data format)
             or (3, 224, 224) (with `channels_first` data format).
             It should have exactly 3 inputs channels,
@@ -298,7 +298,7 @@ def SEMobileNet(input_shape=None,
                 will be applied to the output of the
                 last convolutional layer, and thus
                 the output of the model will be a
-                2D tensor.
+                2D input_tensor.
             - `max` means that global max pooling will
                 be applied.
         classes: optional number of classes to classify images
@@ -308,7 +308,7 @@ def SEMobileNet(input_shape=None,
         A Keras model instance.
     # Raises
         ValueError: in case of invalid argument for `weights`,
-            or invalid input tensor shape.
+            or invalid input_tensor shape.
         RuntimeError: If attempting to run this model with a
             backend that does not support separable convolutions.
     """
@@ -327,7 +327,7 @@ def SEMobileNet(input_shape=None,
         raise ValueError('If using `weights` as ImageNet with `include_top` '
                          'as true, `classes` should be 1000')
 
-    # Determine proper input tensor shape and default size.
+    # Determine proper input_tensor shape and default size.
     if input_shape is None:
         default_size = 224
     else:
@@ -423,7 +423,7 @@ def SEMobileNet(input_shape=None,
 def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1)):
     """Adds an initial convolution layer (with batch normalization and relu6).
     # Arguments
-        inputs: Input tensor of shape `(rows, cols, 3)`
+        inputs: Tensor of shape `(rows, cols, 3)`
             (with `channels_last` data format) or
             (3, rows, cols) (with `channels_first` data format).
             It should have exactly 3 inputs channels,
@@ -460,7 +460,7 @@ def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1)):
         `(samples, new_rows, new_cols, filters)` if data_format='channels_last'.
         `rows` and `cols` values might have changed due to stride.
     # Returns
-        Output tensor of block.
+        Output input of block.
     """
     channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
     filters = int(filters * alpha)
@@ -480,7 +480,7 @@ def _depthwise_conv_block(inputs, pointwise_conv_filters, alpha,
     batch normalization, relu6, pointwise convolution,
     batch normalization and relu6 activation.
     # Arguments
-        inputs: Input tensor of shape `(rows, cols, channels)`
+        inputs: Tensor of shape `(rows, cols, channels)`
             (with `channels_last` data format) or
             (channels, rows, cols) (with `channels_first` data format).
         pointwise_conv_filters: Integer, the dimensionality of the output space
@@ -515,7 +515,7 @@ def _depthwise_conv_block(inputs, pointwise_conv_filters, alpha,
         `(batch, new_rows, new_cols, filters)` if data_format='channels_last'.
         `rows` and `cols` values might have changed due to stride.
     # Returns
-        Output tensor of block.
+        Output input of block.
     """
     channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
     pointwise_conv_filters = int(pointwise_conv_filters * alpha)

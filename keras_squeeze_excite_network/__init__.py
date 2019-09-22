@@ -8,7 +8,7 @@ from os import path
 import yaml
 
 __author__ = 'Somshubra Majumdar'
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 
 def get_logger(name=None):
@@ -24,5 +24,7 @@ try:
     from tensorflow import __version__ as tf_version
 
     TF = True
+    root_logger.info('Using TensorFlow Keras imports')
 except ImportError:
     TF = False
+    root_logger.info('Using vanilla Keras imports')

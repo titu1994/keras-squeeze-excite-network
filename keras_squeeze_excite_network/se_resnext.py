@@ -73,7 +73,7 @@ def SEResNext(input_shape=None,
             input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
                 to use as image input for the model.
             input_shape: optional shape tuple, only to be specified
-                if `include_top` is False (otherwise the input tensor shape
+                if `include_top` is False (otherwise the input_tensor shape
                 has to be `(32, 32, 3)` (with `tf` dim ordering)
                 or `(3, 32, 32)` (with `th` dim ordering).
                 It should have exactly 3 inputs channels,
@@ -111,7 +111,7 @@ def SEResNext(input_shape=None,
             raise ValueError('Depth of the network must be such that (depth - 2)'
                              'should be divisible by 9.')
 
-    # Determine proper input tensor shape
+    # Determine proper input_tensor shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=32,
                                       min_size=8,
@@ -174,7 +174,7 @@ def SEResNextImageNet(input_shape=None,
             input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
                 to use as image input for the model.
             input_shape: optional shape tuple, only to be specified
-                if `include_top` is False (otherwise the input tensor shape
+                if `include_top` is False (otherwise the input_tensor shape
                 has to be `(224, 224, 3)` (with `tf` dim ordering)
                 or `(3, 224, 224)` (with `th` dim ordering).
                 It should have exactly 3 inputs channels,
@@ -210,7 +210,7 @@ def SEResNextImageNet(input_shape=None,
     if type(depth) == int and (depth - 2) % 9 != 0:
         raise ValueError('Depth of the network must be such that (depth - 2)'
                          'should be divisible by 9.')
-    # Determine proper input tensor shape
+    # Determine proper input_tensor shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=224,
                                       min_size=112,
@@ -240,34 +240,34 @@ def SEResNextImageNet(input_shape=None,
     return model
 
 
-def __initial_conv_block(tensor, weight_decay=5e-4):
+def __initial_conv_block(input_tensor, weight_decay=5e-4):
     """ Adds an initial convolution block, with batch normalization and relu activation
     Args:
-        tensor: input tensor
+        input_tensor: input Keras tensor
         weight_decay: weight decay factor
-    Returns: a keras tensor
+    Returns: a Keras tensor
     """
     channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
     x = Conv2D(64, (3, 3), padding='same', use_bias=False, kernel_initializer='he_normal',
-               kernel_regularizer=l2(weight_decay))(tensor)
+               kernel_regularizer=l2(weight_decay))(input_tensor)
     x = BatchNormalization(axis=channel_axis)(x)
     x = LeakyReLU()(x)
 
     return x
 
 
-def __initial_conv_block_inception(tensor, weight_decay=5e-4):
+def __initial_conv_block_inception(input_tensor, weight_decay=5e-4):
     """ Adds an initial conv block, with batch norm and relu for the inception resnext
     Args:
-        tensor: input tensor
+        input_tensor: input Keras tensor
         weight_decay: weight decay factor
-    Returns: a keras tensor
+    Returns: a Keras tensor
     """
     channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
     x = Conv2D(64, (7, 7), padding='same', use_bias=False, kernel_initializer='he_normal',
-               kernel_regularizer=l2(weight_decay), strides=(2, 2))(tensor)
+               kernel_regularizer=l2(weight_decay), strides=(2, 2))(input_tensor)
     x = BatchNormalization(axis=channel_axis)(x)
     x = LeakyReLU()(x)
 
@@ -276,17 +276,17 @@ def __initial_conv_block_inception(tensor, weight_decay=5e-4):
     return x
 
 
-def __grouped_convolution_block(tensor, grouped_channels, cardinality, strides, weight_decay=5e-4):
+def __grouped_convolution_block(input_tensor, grouped_channels, cardinality, strides, weight_decay=5e-4):
     """ Adds a grouped convolution block. It is an equivalent block from the paper
     Args:
-        tensor: input tensor
+        input_tensor: input Keras tensor
         grouped_channels: grouped number of filters
         cardinality: cardinality factor describing the number of groups
         strides: performs strided convolution for downscaling if > 1
         weight_decay: weight decay term
-    Returns: a keras tensor
+    Returns: a Keras tensor
     """
-    init = tensor
+    init = input_tensor
     channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
     group_list = []
@@ -302,7 +302,7 @@ def __grouped_convolution_block(tensor, grouped_channels, cardinality, strides, 
     for c in range(cardinality):
         x = Lambda(lambda z: z[:, :, :, c * grouped_channels:(c + 1) * grouped_channels]
         if K.image_data_format() == 'channels_last' else
-        lambda _z: _z[:, c * grouped_channels:(c + 1) * grouped_channels, :, :])(tensor)
+        lambda _z: _z[:, c * grouped_channels:(c + 1) * grouped_channels, :, :])(input_tensor)
 
         x = Conv2D(grouped_channels, (3, 3), padding='same', use_bias=False, strides=(strides, strides),
                    kernel_initializer='he_normal', kernel_regularizer=l2(weight_decay))(x)
@@ -316,23 +316,23 @@ def __grouped_convolution_block(tensor, grouped_channels, cardinality, strides, 
     return x
 
 
-def __bottleneck_block(tensor, filters=64, cardinality=8, strides=1, weight_decay=5e-4):
+def __bottleneck_block(input_tensor, filters=64, cardinality=8, strides=1, weight_decay=5e-4):
     """ Adds a bottleneck block
     Args:
-        tensor: input tensor
+        input_tensor: input Keras tensor
         filters: number of output filters
         cardinality: cardinality factor described number of
             grouped convolutions
         strides: performs strided convolution for downsampling if > 1
         weight_decay: weight decay factor
-    Returns: a keras tensor
+    Returns: a Keras tensor
     """
-    init = tensor
+    init = input_tensor
 
     grouped_channels = int(filters / cardinality)
     channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
-    # Check if input tensor number of filters is same as 16 * k, else create convolution2d for this input tensor
+    # Check if input_tensor number of filters is same as 16 * k, else create convolution2d for this input_tensor
     if K.image_data_format() == 'channels_first':
         if init._keras_shape[1] != 2 * filters:
             init = Conv2D(filters * 2, (1, 1), padding='same', strides=(strides, strides),
@@ -345,7 +345,7 @@ def __bottleneck_block(tensor, filters=64, cardinality=8, strides=1, weight_deca
             init = BatchNormalization(axis=channel_axis)(init)
 
     x = Conv2D(filters, (1, 1), padding='same', use_bias=False,
-               kernel_initializer='he_normal', kernel_regularizer=l2(weight_decay))(tensor)
+               kernel_initializer='he_normal', kernel_regularizer=l2(weight_decay))(input_tensor)
     x = BatchNormalization(axis=channel_axis)(x)
     x = LeakyReLU()(x)
 
@@ -369,7 +369,7 @@ def __create_res_next(nb_classes, img_input, include_top, depth=29, cardinality=
     """ Creates a ResNeXt model with specified parameters
     Args:
         nb_classes: Number of output classes
-        img_input: Input tensor or layer
+        img_input: Tensor or layer
         include_top: Flag to include the last dense layer
         depth: Depth of the network. Can be an positive integer or a list
                Compute N = (n - 2) / 9.
@@ -444,7 +444,7 @@ def __create_res_next_imagenet(nb_classes, img_input, include_top, depth, cardin
     """ Creates a ResNeXt model with specified parameters
     Args:
         nb_classes: Number of output classes
-        img_input: Input tensor or layer
+        img_input: Tensor or layer
         include_top: Flag to include the last dense layer
         depth: Depth of the network. List of integers.
                Increasing cardinality improves classification accuracy,

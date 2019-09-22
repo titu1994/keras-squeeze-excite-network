@@ -8,19 +8,19 @@ else:
     import keras.backend as K
 
 
-def squeeze_excite_block(tensor, ratio=16):
+def squeeze_excite_block(input_tensor, ratio=16):
     """ Create a channel-wise squeeze-excite block
 
     Args:
-        tensor: input tensor
+        input_tensor: input Keras tensor
         ratio: number of output filters
 
-    Returns: a keras tensor
+    Returns: a Keras tensor
 
     References
     -   [Squeeze and Excitation Networks](https://arxiv.org/abs/1709.01507)
     """
-    init = tensor
+    init = input_tensor
     channel_axis = 1 if K.image_data_format() == "channels_first" else -1
     filters = init._keras_shape[channel_axis]
     se_shape = (1, 1, filters)
@@ -37,41 +37,41 @@ def squeeze_excite_block(tensor, ratio=16):
     return x
 
 
-def spatial_squeeze_excite_block(tensor):
+def spatial_squeeze_excite_block(input_tensor):
     """ Create a spatial squeeze-excite block
 
     Args:
-        tensor: input tensor
+        input_tensor: input Keras tensor
 
-    Returns: a keras tensor
+    Returns: a Keras tensor
 
     References
     -   [Concurrent Spatial and Channel Squeeze & Excitation in Fully Convolutional Networks](https://arxiv.org/abs/1803.02579)
     """
 
     se = Conv2D(1, (1, 1), activation='sigmoid', use_bias=False,
-                kernel_initializer='he_normal')(tensor)
+                kernel_initializer='he_normal')(input_tensor)
 
-    x = multiply([tensor, se])
+    x = multiply([input_tensor, se])
     return x
 
 
-def channel_spatial_squeeze_excite(tensor, ratio=16):
+def channel_spatial_squeeze_excite(input_tensor, ratio=16):
     """ Create a spatial squeeze-excite block
 
     Args:
-        tensor: input tensor
+        input_tensor: input Keras tensor
         ratio: number of output filters
 
-    Returns: a keras tensor
+    Returns: a Keras tensor
 
     References
     -   [Squeeze and Excitation Networks](https://arxiv.org/abs/1709.01507)
     -   [Concurrent Spatial and Channel Squeeze & Excitation in Fully Convolutional Networks](https://arxiv.org/abs/1803.02579)
     """
 
-    cse = squeeze_excite_block(tensor, ratio)
-    sse = spatial_squeeze_excite_block(tensor)
+    cse = squeeze_excite_block(input_tensor, ratio)
+    sse = spatial_squeeze_excite_block(input_tensor)
 
     x = add([cse, sse])
     return x
