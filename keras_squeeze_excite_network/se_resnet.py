@@ -36,7 +36,7 @@ else:
     is_keras_tensor = K.is_keras_tensor
 
 from keras_squeeze_excite_network.se import squeeze_excite_block
-from keras_squeeze_excite_network.utils import _obtain_input_shape
+from keras_squeeze_excite_network.utils import _obtain_input_shape, _tensor_shape
 
 __all__ = ['SEResNet', 'SEResNet50', 'SEResNet101', 'SEResNet154',
            'preprocess_input', 'decode_predictions']
@@ -83,7 +83,7 @@ def SEResNet(input_shape=None,
             input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
                 to use as image input for the model.
             input_shape: optional shape tuple, only to be specified
-                if `include_top` is False (otherwise the input_tensor shape
+                if `include_top` is False (otherwise the input shape
                 has to be `(224, 224, 3)` (with `tf` dim ordering)
                 or `(3, 224, 224)` (with `th` dim ordering).
                 It should have exactly 3 inputs channels,
@@ -119,7 +119,7 @@ def SEResNet(input_shape=None,
     assert len(depth) == len(filters), "The length of filter increment list must match the length " \
                                        "of the depth list."
 
-    # Determine proper input_tensor shape
+    # Determine proper input shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=224,
                                       min_size=32,
@@ -272,7 +272,7 @@ def _resnet_block(input_tensor, filters, k=1, strides=(1, 1)):
     x = BatchNormalization(axis=channel_axis)(input_tensor)
     x = Activation('relu')(x)
 
-    if strides != (1, 1) or init._keras_shape[channel_axis] != filters * k:
+    if strides != (1, 1) or _tensor_shape(init)[channel_axis] != filters * k:
         init = Conv2D(filters * k, (1, 1), padding='same', kernel_initializer='he_normal',
                       use_bias=False, strides=strides)(x)
 
@@ -309,7 +309,7 @@ def _resnet_bottleneck_block(input_tensor, filters, k=1, strides=(1, 1)):
     x = BatchNormalization(axis=channel_axis)(input_tensor)
     x = Activation('relu')(x)
 
-    if strides != (1, 1) or init._keras_shape[channel_axis] != bottleneck_expand * filters * k:
+    if strides != (1, 1) or _tensor_shape(init)[channel_axis] != bottleneck_expand * filters * k:
         init = Conv2D(bottleneck_expand * filters * k, (1, 1), padding='same', kernel_initializer='he_normal',
                       use_bias=False, strides=strides)(x)
 

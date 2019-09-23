@@ -93,7 +93,7 @@ def SEDenseNet(input_shape=None,
     """Instantiate the SE DenseNet architecture
         # Arguments
             input_shape: optional shape tuple, only to be specified
-                if `include_top` is False (otherwise the input_tensor shape
+                if `include_top` is False (otherwise the input shape
                 has to be `(32, 32, 3)` (with `channels_last` dim ordering)
                 or `(3, 32, 32)` (with `channels_first` dim ordering).
                 It should have exactly 3 inputs channels,
@@ -147,7 +147,7 @@ def SEDenseNet(input_shape=None,
     if activation == 'sigmoid' and classes != 1:
         raise ValueError('sigmoid activation can only be used when classes = 1')
 
-    # Determine proper input_tensor shape
+    # Determine proper input shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=32,
                                       min_size=8,

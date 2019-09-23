@@ -2,7 +2,7 @@
 
 Major portions of this code is adapted from the applications folder of Keras.
 
-Note that the input_tensor image format for this model is different than for
+Note that the input image format for this model is different than for
 the VGG16 and ResNet models (299x299 instead of 224x224),
 and that the input_tensor preprocessing function is also different (same as Xception).
 
@@ -64,7 +64,7 @@ def _conv2d_bn(x,
             batch norm layer.
 
     # Returns
-        Output input after applying `Conv2D` and `BatchNormalization`.
+        Output tensor after applying `Conv2D` and `BatchNormalization`.
     """
     if name is not None:
         bn_name = name + '_bn'
@@ -103,7 +103,7 @@ def SEInceptionV3(include_top=True,
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
         input_shape: optional shape tuple, only to be specified
-            if `include_top` is False (otherwise the input_tensor shape
+            if `include_top` is False (otherwise the input shape
             has to be `(299, 299, 3)` (with `channels_last` data format)
             or `(3, 299, 299)` (with `channels_first` data format).
             It should have exactly 3 inputs channels,
@@ -129,7 +129,7 @@ def SEInceptionV3(include_top=True,
 
     # Raises
         ValueError: in case of invalid argument for `weights`,
-            or invalid input_tensor shape.
+            or invalid input shape.
     """
     if weights not in {'imagenet', None}:
         raise ValueError('The `weights` argument should be either '
@@ -140,7 +140,7 @@ def SEInceptionV3(include_top=True,
         raise ValueError('If using `weights` as imagenet with `include_top`'
                          ' as true, `classes` should be 1000')
 
-    # Determine proper input_tensor shape
+    # Determine proper input shape
     input_shape = _obtain_input_shape(
         input_shape,
         default_size=299,

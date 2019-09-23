@@ -1,7 +1,9 @@
 import warnings
 
-
 # From https://github.com/keras-team/keras-applications/blob/e52c477/keras_applications/imagenet_utils.py#L235-L331
+from keras_squeeze_excite_network import TF
+
+
 def _obtain_input_shape(input_shape,
                         default_size,
                         min_size,
@@ -96,3 +98,7 @@ def _obtain_input_shape(input_shape,
                              'you should specify a static `input_shape`. '
                              'Got `input_shape=' + str(input_shape) + '`')
     return input_shape
+
+
+def _tensor_shape(tensor):
+    return getattr(tensor, '_shape_val') if TF else getattr(tensor, '_keras_shape')

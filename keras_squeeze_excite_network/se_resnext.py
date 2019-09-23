@@ -17,7 +17,7 @@ if TF:
     from tensorflow.keras.regularizers import l2
     from tensorflow.python.keras.backend import is_keras_tensor
     from tensorflow.python.keras.utils import get_source_inputs
-    from keras_squeeze_excite_network.utils import _obtain_input_shape
+    from keras_squeeze_excite_network.utils import _obtain_input_shape, _tensor_shape
 else:
     import keras.backend as K
     from keras.layers import (BatchNormalization, Conv2D, Dense, Lambda,
@@ -73,7 +73,7 @@ def SEResNext(input_shape=None,
             input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
                 to use as image input for the model.
             input_shape: optional shape tuple, only to be specified
-                if `include_top` is False (otherwise the input_tensor shape
+                if `include_top` is False (otherwise the input shape
                 has to be `(32, 32, 3)` (with `tf` dim ordering)
                 or `(3, 32, 32)` (with `th` dim ordering).
                 It should have exactly 3 inputs channels,
@@ -111,7 +111,7 @@ def SEResNext(input_shape=None,
             raise ValueError('Depth of the network must be such that (depth - 2)'
                              'should be divisible by 9.')
 
-    # Determine proper input_tensor shape
+    # Determine proper input shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=32,
                                       min_size=8,
@@ -174,7 +174,7 @@ def SEResNextImageNet(input_shape=None,
             input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
                 to use as image input for the model.
             input_shape: optional shape tuple, only to be specified
-                if `include_top` is False (otherwise the input_tensor shape
+                if `include_top` is False (otherwise the input shape
                 has to be `(224, 224, 3)` (with `tf` dim ordering)
                 or `(3, 224, 224)` (with `th` dim ordering).
                 It should have exactly 3 inputs channels,
@@ -210,7 +210,7 @@ def SEResNextImageNet(input_shape=None,
     if type(depth) == int and (depth - 2) % 9 != 0:
         raise ValueError('Depth of the network must be such that (depth - 2)'
                          'should be divisible by 9.')
-    # Determine proper input_tensor shape
+    # Determine proper input shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=224,
                                       min_size=112,
@@ -334,12 +334,12 @@ def __bottleneck_block(input_tensor, filters=64, cardinality=8, strides=1, weigh
 
     # Check if input_tensor number of filters is same as 16 * k, else create convolution2d for this input_tensor
     if K.image_data_format() == 'channels_first':
-        if init._keras_shape[1] != 2 * filters:
+        if _tensor_shape(init)[1] != 2 * filters:
             init = Conv2D(filters * 2, (1, 1), padding='same', strides=(strides, strides),
                           use_bias=False, kernel_initializer='he_normal', kernel_regularizer=l2(weight_decay))(init)
             init = BatchNormalization(axis=channel_axis)(init)
     else:
-        if init._keras_shape[-1] != 2 * filters:
+        if _tensor_shape(init)[-1] != 2 * filters:
             init = Conv2D(filters * 2, (1, 1), padding='same', strides=(strides, strides),
                           use_bias=False, kernel_initializer='he_normal', kernel_regularizer=l2(weight_decay))(init)
             init = BatchNormalization(axis=channel_axis)(init)

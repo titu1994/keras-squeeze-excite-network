@@ -71,7 +71,7 @@ def conv2d_bn(x,
         name: name of the ops; will become `name + '_ac'` for the activation
             and `name + '_bn'` for the batch norm layer.
     # Returns
-        Output input after applying `Conv2D` and `BatchNormalization`.
+        Output tensor after applying `Conv2D` and `BatchNormalization`.
     """
     x = Conv2D(filters,
                kernel_size,
@@ -115,7 +115,7 @@ def inception_resnet_block(x, scale, block_type, block_idx, activation='relu'):
             When `activation=None`, no activation is applied
             (i.e., "linear" activation: `a(x) = x`).
     # Returns
-        Output input for the block.
+        Output tensor for the block.
     # Raises
         ValueError: if `block_type` is not one of `'block35'`,
             `'block17'` or `'block8'`.
@@ -193,7 +193,7 @@ def SEInceptionResNetV2(include_top=True,
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
         input_shape: optional shape tuple, only to be specified
-            if `include_top` is `False` (otherwise the input_tensor shape
+            if `include_top` is `False` (otherwise the input shape
             has to be `(299, 299, 3)` (with `'channels_last'` data format)
             or `(3, 299, 299)` (with `'channels_first'` data format).
             It should have exactly 3 inputs channels,
@@ -215,7 +215,7 @@ def SEInceptionResNetV2(include_top=True,
         A Keras `Model` instance.
     # Raises
         ValueError: in case of invalid argument for `weights`,
-            or invalid input_tensor shape.
+            or invalid input shape.
         RuntimeError: If attempting to run this model with an unsupported backend.
     """
     if K.backend() in {'cntk'}:
@@ -230,7 +230,7 @@ def SEInceptionResNetV2(include_top=True,
         raise ValueError('If using `weights` as imagenet with `include_top`'
                          ' as true, `classes` should be 1000')
 
-    # Determine proper input_tensor shape
+    # Determine proper input shape
     input_shape = _obtain_input_shape(
         input_shape,
         default_size=299,
