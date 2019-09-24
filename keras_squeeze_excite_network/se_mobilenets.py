@@ -150,6 +150,8 @@ class DepthwiseConv2D(Conv2D):
         self.depthwise_regularizer = regularizers.get(depthwise_regularizer)
         self.depthwise_constraint = constraints.get(depthwise_constraint)
         self.bias_initializer = initializers.get(bias_initializer)
+        self.depthwise_kernel = None
+        self.bias = None
 
     def build(self, input_shape):
         if len(input_shape) < 4:
@@ -298,7 +300,7 @@ def SEMobileNet(input_shape=None,
                 will be applied to the output of the
                 last convolutional layer, and thus
                 the output of the model will be a
-                2D input.
+                input shape
             - `max` means that global max pooling will
                 be applied.
         classes: optional number of classes to classify images

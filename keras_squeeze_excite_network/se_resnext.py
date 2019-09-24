@@ -106,7 +106,7 @@ def SEResNext(input_shape=None,
         raise ValueError('If using `weights` as CIFAR 10 with `include_top`'
                          ' as true, `classes` should be 10')
 
-    if type(depth) == int:
+    if type(depth) is int:
         if (depth - 2) % 9 != 0:
             raise ValueError('Depth of the network must be such that (depth - 2)'
                              'should be divisible by 9.')
@@ -207,7 +207,7 @@ def SEResNextImageNet(input_shape=None,
         raise ValueError('If using `weights` as imagenet with `include_top`'
                          ' as true, `classes` should be 1000')
 
-    if type(depth) == int and (depth - 2) % 9 != 0:
+    if type(depth) is int and (depth - 2) % 9 != 0:
         raise ValueError('Depth of the network must be such that (depth - 2)'
                          'should be divisible by 9.')
     # Determine proper input shape

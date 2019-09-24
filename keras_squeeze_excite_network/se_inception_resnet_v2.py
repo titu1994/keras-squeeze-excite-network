@@ -99,10 +99,10 @@ def inception_resnet_block(x, scale, block_type, block_idx, activation='relu'):
         - Inception-ResNet-C: `block_type='block8'`
     # Arguments
         x: input keras tensor.
-        scale: scaling factor to scale the residuals (i.e., the output of
+        scale_: scaling factor to scale_ the residuals (i.e., the output of
             passing `x` through an inception module) before adding them
             to the shortcut branch. Let `r` be the output from the residual branch,
-            the output of this block will be `x + scale * r`.
+            the output of this block will be `x + scale_ * r`.
         block_type: `'block35'`, `'block17'` or `'block8'`, determines
             the network structure in the residual branch.
         block_idx: an `int` used for generating layer names. The Inception-ResNet blocks
@@ -155,7 +155,7 @@ def inception_resnet_block(x, scale, block_type, block_idx, activation='relu'):
                    use_bias=True,
                    name=block_name + '_conv')
 
-    x = Lambda(lambda inputs, scale: inputs[0] + inputs[1] * scale,
+    x = Lambda(lambda inputs, scale_: inputs[0] + inputs[1] * scale_,
                output_shape=K.int_shape(x)[1:],
                arguments={'scale': scale},
                name=block_name)([x, up])
@@ -181,7 +181,7 @@ def SEInceptionResNetV2(include_top=True,
     The model and the weights are compatible with both TensorFlow and Theano
     backends (but not CNTK). The data format convention used by the model is
     the one specified in your Keras config file.
-    Note that the default input tensor image size for this model is 299x299, instead
+    Note that the default input image size for this model is 299x299, instead
     of 224x224 as in the VGG16 and ResNet models. Also, the input preprocessing
     function is different (i.e., do not use `imagenet_utils.preprocess_input()`
     with this model. Use `preprocess_input()` defined in this module instead).

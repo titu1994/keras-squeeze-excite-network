@@ -38,11 +38,11 @@ def preprocess_input(x, data_format=None):
     """Preprocesses a input_tensor encoding a batch of images.
 
     # Arguments
-        x: 4D Numpy input
-        data_format: data format of the image input.
+        x: 4D numpy input
+        data_format: data format of the image tensor.
 
     # Returns
-        Preprocessed input.
+        Preprocessed tensor.
     """
     if data_format is None:
         data_format = K.image_data_format()
@@ -297,7 +297,7 @@ def __dense_block(x, nb_layers, nb_filter, growth_rate, bottleneck=False, dropou
                   grow_nb_filters=True, return_concat_list=False):
     """ Build a dense_block where the output of each conv_block is fed to subsequent ones
     Args:
-        x: keras input_tensor
+        x: keras tensor
         nb_layers: the number of layers of conv_block to append to the model.
         nb_filter: number of filters
         growth_rate: growth rate
@@ -333,7 +333,7 @@ def __dense_block(x, nb_layers, nb_filter, growth_rate, bottleneck=False, dropou
 def __transition_block(ip, nb_filter, compression=1.0, weight_decay=1e-4):
     """ Apply BatchNorm, Relu 1x1, Conv2D, optional compression, dropout and Maxpooling2D
     Args:
-        ip: keras input_tensor
+        ip: keras tensor
         nb_filter: number of filters
         compression: calculated as 1 - reduction. Reduces the number of feature maps
                     in the transition block.
