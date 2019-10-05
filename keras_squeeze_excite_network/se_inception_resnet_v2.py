@@ -81,10 +81,10 @@ def conv2d_bn(x,
                name=name)(x)
     if not use_bias:
         bn_axis = 1 if K.image_data_format() == 'channels_first' else 3
-        bn_name = None if name is None else name + '_bn'
+        bn_name = None if name is None else '{name}_bn'.format(name=name)
         x = BatchNormalization(axis=bn_axis, scale=False, name=bn_name)(x)
     if activation is not None:
-        ac_name = None if name is None else name + '_ac'
+        ac_name = None if name is None else '{name}_ac'.format(name=name)
         x = Activation(activation, name=ac_name)(x)
     return x
 
@@ -143,24 +143,24 @@ def inception_resnet_block(x, scale, block_type, block_idx, activation='relu'):
     else:
         raise ValueError('Unknown Inception-ResNet block type. '
                          'Expects "block35", "block17" or "block8", '
-                         'but got: ' + str(block_type))
+                         'but got: {block_type}'.format(block_type=block_type))
 
-    block_name = block_type + '_' + str(block_idx)
+    block_name = '{block_type}_{block_idx}'.format(block_type=block_type, block_idx=block_idx)
     channel_axis = 1 if K.image_data_format() == 'channels_first' else 3
-    mixed = Concatenate(axis=channel_axis, name=block_name + '_mixed')(branches)
+    mixed = Concatenate(axis=channel_axis, name='{block_name}_mixed'.format(block_name=block_name))(branches)
     up = conv2d_bn(mixed,
                    K.int_shape(x)[channel_axis],
                    1,
                    activation=None,
                    use_bias=True,
-                   name=block_name + '_conv')
+                   name='{block_name}_conv'.format(block_name=block_name))
 
     x = Lambda(lambda inputs, scale_: inputs[0] + inputs[1] * scale_,
                output_shape=K.int_shape(x)[1:],
                arguments={'scale': scale},
                name=block_name)([x, up])
     if activation is not None:
-        x = Activation(activation, name=block_name + '_ac')(x)
+        x = Activation(activation, name='{block_name}_ac'.format(block_name=block_name))(x)
 
     # squeeze and excite block
     x = squeeze_excite_block(x)
@@ -219,7 +219,7 @@ def SEInceptionResNetV2(include_top=True,
         RuntimeError: If attempting to run this model with an unsupported backend.
     """
     if K.backend() in {'cntk'}:
-        raise RuntimeError(K.backend() + ' backend is currently unsupported for this model.')
+        raise RuntimeError('{backend} backend is currently unsupported for this model.'.format(backend=K.backend()))
 
     if weights not in {'imagenet', None}:
         raise ValueError('The `weights` argument should be either '

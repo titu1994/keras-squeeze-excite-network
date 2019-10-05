@@ -67,8 +67,8 @@ def _conv2d_bn(x,
         Output tensor after applying `Conv2D` and `BatchNormalization`.
     """
     if name is not None:
-        bn_name = name + '_bn'
-        conv_name = name + '_conv'
+        bn_name = '{name}_bn'.format(name=name)
+        conv_name = '{name}_conv'.format(name=name)
     else:
         bn_name = None
         conv_name = None
@@ -288,7 +288,7 @@ def SEInceptionV3(include_top=True,
         x = layers.concatenate(
             [branch1x1, branch7x7, branch7x7dbl, branch_pool],
             axis=channel_axis,
-            name='mixed' + str(5 + i))
+            name='mixed{}'.format(5 + i))
 
         # squeeze and excite block
         x = squeeze_excite_block(x)
@@ -342,7 +342,7 @@ def SEInceptionV3(include_top=True,
         branch3x3_1 = _conv2d_bn(branch3x3, 384, 1, 3)
         branch3x3_2 = _conv2d_bn(branch3x3, 384, 3, 1)
         branch3x3 = layers.concatenate(
-            [branch3x3_1, branch3x3_2], axis=channel_axis, name='mixed9_' + str(i))
+            [branch3x3_1, branch3x3_2], axis=channel_axis, name='mixed9_{i}'.format(i=i))
 
         branch3x3dbl = _conv2d_bn(x, 448, 1, 1)
         branch3x3dbl = _conv2d_bn(branch3x3dbl, 384, 3, 3)
@@ -357,7 +357,7 @@ def SEInceptionV3(include_top=True,
         x = layers.concatenate(
             [branch1x1, branch3x3, branch3x3dbl, branch_pool],
             axis=channel_axis,
-            name='mixed' + str(9 + i))
+            name='mixed{}'.format(9 + i))
 
         # squeeze and excite block
         x = squeeze_excite_block(x)

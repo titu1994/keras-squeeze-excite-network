@@ -1,9 +1,9 @@
 import warnings
 
-# From https://github.com/keras-team/keras-applications/blob/e52c477/keras_applications/imagenet_utils.py#L235-L331
 from keras_squeeze_excite_network import TF
 
 
+# From https://github.com/keras-team/keras-applications/blob/e52c477/keras_applications/imagenet_utils.py#L235-L331
 def _obtain_input_shape(input_shape,
                         default_size,
                         min_size,
@@ -32,15 +32,15 @@ def _obtain_input_shape(input_shape,
             if input_shape[0] not in {1, 3}:
                 warnings.warn(
                     'This model usually expects 1 or 3 input channels. '
-                    'However, it was passed an input_shape with ' +
-                    str(input_shape[0]) + ' input channels.')
+                    'However, it was passed an input_shape with {input_shape}'
+                    ' input channels.'.format(input_shape=input_shape[0]))
             default_shape = (input_shape[0], default_size, default_size)
         else:
             if input_shape[-1] not in {1, 3}:
                 warnings.warn(
                     'This model usually expects 1 or 3 input channels. '
-                    'However, it was passed an input_shape with ' +
-                    str(input_shape[-1]) + ' input channels.')
+                    'However, it was passed an input_shape with {n_input_channels}'
+                    ' input channels.'.format(n_input_channels=input_shape[-1]))
             default_shape = (default_size, default_size, input_shape[-1])
     else:
         if data_format == 'channels_first':
@@ -52,8 +52,7 @@ def _obtain_input_shape(input_shape,
             if input_shape != default_shape:
                 raise ValueError('When setting `include_top=True` '
                                  'and loading `imagenet` weights, '
-                                 '`input_shape` should be ' +
-                                 str(default_shape) + '.')
+                                 '`input_shape` should be {default_shape}.'.format(default_shape=default_shape))
         return default_shape
     if input_shape:
         if data_format == 'channels_first':
@@ -63,13 +62,12 @@ def _obtain_input_shape(input_shape,
                         '`input_shape` must be a tuple of three integers.')
                 if input_shape[0] != 3 and weights == 'imagenet':
                     raise ValueError('The input must have 3 channels; got '
-                                     '`input_shape=' + str(input_shape) + '`')
+                                     '`input_shape={input_shape}`'.format(input_shape=input_shape))
                 if ((input_shape[1] is not None and input_shape[1] < min_size) or
                     (input_shape[2] is not None and input_shape[2] < min_size)):
-                    raise ValueError('Input size must be at least ' +
-                                     str(min_size) + 'x' + str(min_size) +
-                                     '; got `input_shape=' +
-                                     str(input_shape) + '`')
+                    raise ValueError('Input size must be at least {min_size}x{min_size};'
+                                     ' got `input_shape={input_shape}`'.format(min_size=min_size,
+                                                                               input_shape=input_shape))
         else:
             if input_shape is not None:
                 if len(input_shape) != 3:
@@ -77,13 +75,12 @@ def _obtain_input_shape(input_shape,
                         '`input_shape` must be a tuple of three integers.')
                 if input_shape[-1] != 3 and weights == 'imagenet':
                     raise ValueError('The input must have 3 channels; got '
-                                     '`input_shape=' + str(input_shape) + '`')
+                                     '`input_shape={input_shape}`'.format(input_shape=input_shape))
                 if ((input_shape[0] is not None and input_shape[0] < min_size) or
                     (input_shape[1] is not None and input_shape[1] < min_size)):
-                    raise ValueError('Input size must be at least ' +
-                                     str(min_size) + 'x' + str(min_size) +
-                                     '; got `input_shape=' +
-                                     str(input_shape) + '`')
+                    raise ValueError('Input size must be at least {min_size}x{min_size};'
+                                     ' got `input_shape={input_shape}`'.format(min_size=min_size,
+                                                                               input_shape=input_shape))
     else:
         if require_flatten:
             input_shape = default_shape
@@ -96,7 +93,7 @@ def _obtain_input_shape(input_shape,
         if None in input_shape:
             raise ValueError('If `include_top` is True, '
                              'you should specify a static `input_shape`. '
-                             'Got `input_shape=' + str(input_shape) + '`')
+                             'Got `input_shape={input_shape}`'.format(input_shape=input_shape))
     return input_shape
 
 
