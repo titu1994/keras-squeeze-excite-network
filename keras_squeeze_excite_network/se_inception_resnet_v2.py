@@ -13,31 +13,33 @@ Original code from Keras applications
 - [Inception-v4, Inception-ResNet and the Impact of
    Residual Connections on Learning](https://arxiv.org/abs/1602.07261)
 """
-from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import print_function
 
-import warnings
+from keras_squeeze_excite_network import TF
 
-from keras.models import Model
-from keras.layers import Activation
-from keras.layers import AveragePooling2D
-from keras.layers import BatchNormalization
-from keras.layers import Concatenate
-from keras.layers import Conv2D
-from keras.layers import Dense
-from keras.layers import GlobalAveragePooling2D
-from keras.layers import GlobalMaxPooling2D
-from keras.layers import Input
-from keras.layers import Lambda
-from keras.layers import MaxPooling2D
-from keras.utils.data_utils import get_file
-from keras.engine.topology import get_source_inputs
-from keras.applications import imagenet_utils
-from keras.applications.imagenet_utils import _obtain_input_shape
-from keras.applications.imagenet_utils import decode_predictions
-from keras import backend as K
+if TF:
+    from tensorflow.keras.models import Model
+    from tensorflow.keras.layers import (Activation, AveragePooling2D, BatchNormalization,
+                                         Concatenate, Conv2D, Dense, GlobalAveragePooling2D,
+                                         GlobalMaxPooling2D, Input, Lambda, MaxPooling2D)
+    from tensorflow.keras import backend as K
+    from tensorflow.python.keras.applications import imagenet_utils
+    from tensorflow.python.keras.backend import is_keras_tensor
+    from tensorflow.python.keras.utils import get_source_inputs
+else:
+    from keras.models import Model
+    from keras.layers import (Activation, AveragePooling2D, BatchNormalization,
+                              Concatenate, Conv2D, Dense, GlobalAveragePooling2D,
+                              GlobalMaxPooling2D, Input, Lambda, MaxPooling2D)
+    from keras import backend as K
+    from keras.applications import imagenet_utils
+    from keras.utils import get_source_inputs
 
-from se import squeeze_excite_block
+    is_keras_tensor = K.is_keras_tensor
+
+from keras_squeeze_excite_network.se import squeeze_excite_block
+from keras_squeeze_excite_network.utils import _obtain_input_shape
 
 
 def preprocess_input(x):
@@ -60,7 +62,7 @@ def conv2d_bn(x,
               name=None):
     """Utility function to apply conv + BN.
     # Arguments
-        x: input tensor.
+        x: input keras tensor.
         filters: filters in `Conv2D`.
         kernel_size: kernel size as in `Conv2D`.
         padding: padding mode in `Conv2D`.
@@ -79,10 +81,10 @@ def conv2d_bn(x,
                name=name)(x)
     if not use_bias:
         bn_axis = 1 if K.image_data_format() == 'channels_first' else 3
-        bn_name = None if name is None else name + '_bn'
+        bn_name = None if name is None else '{name}_bn'.format(name=name)
         x = BatchNormalization(axis=bn_axis, scale=False, name=bn_name)(x)
     if activation is not None:
-        ac_name = None if name is None else name + '_ac'
+        ac_name = None if name is None else '{name}_ac'.format(name=name)
         x = Activation(activation, name=ac_name)(x)
     return x
 
@@ -96,11 +98,11 @@ def inception_resnet_block(x, scale, block_type, block_idx, activation='relu'):
         - Inception-ResNet-B: `block_type='block17'`
         - Inception-ResNet-C: `block_type='block8'`
     # Arguments
-        x: input tensor.
-        scale: scaling factor to scale the residuals (i.e., the output of
+        x: input keras tensor.
+        scale_: scaling factor to scale_ the residuals (i.e., the output of
             passing `x` through an inception module) before adding them
             to the shortcut branch. Let `r` be the output from the residual branch,
-            the output of this block will be `x + scale * r`.
+            the output of this block will be `x + scale_ * r`.
         block_type: `'block35'`, `'block17'` or `'block8'`, determines
             the network structure in the residual branch.
         block_idx: an `int` used for generating layer names. The Inception-ResNet blocks
@@ -141,24 +143,24 @@ def inception_resnet_block(x, scale, block_type, block_idx, activation='relu'):
     else:
         raise ValueError('Unknown Inception-ResNet block type. '
                          'Expects "block35", "block17" or "block8", '
-                         'but got: ' + str(block_type))
+                         'but got: {block_type}'.format(block_type=block_type))
 
-    block_name = block_type + '_' + str(block_idx)
+    block_name = '{block_type}_{block_idx}'.format(block_type=block_type, block_idx=block_idx)
     channel_axis = 1 if K.image_data_format() == 'channels_first' else 3
-    mixed = Concatenate(axis=channel_axis, name=block_name + '_mixed')(branches)
+    mixed = Concatenate(axis=channel_axis, name='{block_name}_mixed'.format(block_name=block_name))(branches)
     up = conv2d_bn(mixed,
                    K.int_shape(x)[channel_axis],
                    1,
                    activation=None,
                    use_bias=True,
-                   name=block_name + '_conv')
+                   name='{block_name}_conv'.format(block_name=block_name))
 
-    x = Lambda(lambda inputs, scale: inputs[0] + inputs[1] * scale,
+    x = Lambda(lambda inputs, scale_: inputs[0] + inputs[1] * scale_,
                output_shape=K.int_shape(x)[1:],
                arguments={'scale': scale},
                name=block_name)([x, up])
     if activation is not None:
-        x = Activation(activation, name=block_name + '_ac')(x)
+        x = Activation(activation, name='{block_name}_ac'.format(block_name=block_name))(x)
 
     # squeeze and excite block
     x = squeeze_excite_block(x)
@@ -217,7 +219,7 @@ def SEInceptionResNetV2(include_top=True,
         RuntimeError: If attempting to run this model with an unsupported backend.
     """
     if K.backend() in {'cntk'}:
-        raise RuntimeError(K.backend() + ' backend is currently unsupported for this model.')
+        raise RuntimeError('{backend} backend is currently unsupported for this model.'.format(backend=K.backend()))
 
     if weights not in {'imagenet', None}:
         raise ValueError('The `weights` argument should be either '
@@ -240,7 +242,7 @@ def SEInceptionResNetV2(include_top=True,
     if input_tensor is None:
         img_input = Input(shape=input_shape)
     else:
-        if not K.is_keras_tensor(input_tensor):
+        if not is_keras_tensor(input_tensor):
             img_input = Input(tensor=input_tensor, shape=input_shape)
         else:
             img_input = input_tensor

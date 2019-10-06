@@ -4,34 +4,35 @@
 - [MobileNets: Efficient Convolutional Neural Networks for
    Mobile Vision Applications](https://arxiv.org/pdf/1704.04861.pdf))
 """
-from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import print_function
 
-import warnings
+from keras_squeeze_excite_network import TF
 
-from keras.models import Model
-from keras.layers import Input
-from keras.layers import Activation
-from keras.layers import Dropout
-from keras.layers import Reshape
-from keras.layers import BatchNormalization
-from keras.layers import GlobalAveragePooling2D
-from keras.layers import GlobalMaxPooling2D
-from keras.layers import Conv2D
-from keras import initializers
-from keras import regularizers
-from keras import constraints
-from keras.utils import conv_utils
-from keras.utils.data_utils import get_file
-from keras.engine.topology import get_source_inputs
-from keras.engine import InputSpec
-from keras.applications import imagenet_utils
-from keras.applications.imagenet_utils import _obtain_input_shape
-from keras.applications.imagenet_utils import decode_predictions
-from keras import backend as K
+if TF:
+    from tensorflow.keras import initializers, regularizers, constraints, backend as K
+    from tensorflow.keras.layers import (Input, Activation, Dropout, Reshape, BatchNormalization,
+                                         GlobalAveragePooling2D, GlobalMaxPooling2D, Conv2D)
+    from tensorflow.keras.models import Model
+    from tensorflow.python.keras.applications import imagenet_utils
+    from tensorflow.python.keras.backend import is_keras_tensor, depthwise_conv2d
+    from tensorflow.python.keras.engine import InputSpec
+    from tensorflow.python.keras.utils import conv_utils, get_source_inputs
+else:
+    from keras import initializers, regularizers, constraints, backend as K
+    from keras.layers import (Input, Activation, Dropout, Reshape, BatchNormalization,
+                              GlobalAveragePooling2D, GlobalMaxPooling2D, Conv2D)
+    from keras.models import Model
+    from keras.applications import imagenet_utils
+    from keras.backend import depthwise_conv2d
+    from keras.engine import InputSpec
+    from keras.utils import conv_utils, get_source_inputs
 
-from se import squeeze_excite_block
+    is_keras_tensor = K.is_keras_tensor
+
+from keras_squeeze_excite_network.se import squeeze_excite_block
+from keras_squeeze_excite_network.utils import _obtain_input_shape
 
 
 def relu6(x):
@@ -149,11 +150,13 @@ class DepthwiseConv2D(Conv2D):
         self.depthwise_regularizer = regularizers.get(depthwise_regularizer)
         self.depthwise_constraint = constraints.get(depthwise_constraint)
         self.bias_initializer = initializers.get(bias_initializer)
+        self.depthwise_kernel = None
+        self.bias = None
 
     def build(self, input_shape):
         if len(input_shape) < 4:
             raise ValueError('Inputs to `DepthwiseConv2D` should have rank 4. '
-                             'Received input shape:', str(input_shape))
+                             'Received input shape: {input_shape}'.format(input_shape=input_shape))
         if self.data_format == 'channels_first':
             channel_axis = 1
         else:
@@ -188,7 +191,7 @@ class DepthwiseConv2D(Conv2D):
         self.built = True
 
     def call(self, inputs, training=None):
-        outputs = K.depthwise_conv2d(
+        outputs = depthwise_conv2d(
             inputs,
             self.depthwise_kernel,
             strides=self.strides,
@@ -225,9 +228,9 @@ class DepthwiseConv2D(Conv2D):
                                              self.strides[1])
 
         if self.data_format == 'channels_first':
-            return (input_shape[0], out_filters, rows, cols)
+            return input_shape[0], out_filters, rows, cols
         elif self.data_format == 'channels_last':
-            return (input_shape[0], rows, cols, out_filters)
+            return input_shape[0], rows, cols, out_filters
 
     def get_config(self):
         config = super(DepthwiseConv2D, self).get_config()
@@ -297,7 +300,7 @@ def SEMobileNet(input_shape=None,
                 will be applied to the output of the
                 last convolutional layer, and thus
                 the output of the model will be a
-                2D tensor.
+                input shape
             - `max` means that global max pooling will
                 be applied.
         classes: optional number of classes to classify images
@@ -354,12 +357,12 @@ def SEMobileNet(input_shape=None,
     else:
         row_axis, col_axis = (1, 2)
     rows = input_shape[row_axis]
-    cols = input_shape[col_axis]
+    # cols = input_shape[col_axis]
 
     if input_tensor is None:
         img_input = Input(shape=input_shape)
     else:
-        if not K.is_keras_tensor(input_tensor):
+        if not is_keras_tensor(input_tensor):
             img_input = Input(tensor=input_tensor, shape=input_shape)
         else:
             img_input = input_tensor
@@ -422,7 +425,7 @@ def SEMobileNet(input_shape=None,
 def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1)):
     """Adds an initial convolution layer (with batch normalization and relu6).
     # Arguments
-        inputs: Input tensor of shape `(rows, cols, 3)`
+        inputs: Tensor of shape `(rows, cols, 3)`
             (with `channels_last` data format) or
             (3, rows, cols) (with `channels_first` data format).
             It should have exactly 3 inputs channels,
@@ -479,7 +482,7 @@ def _depthwise_conv_block(inputs, pointwise_conv_filters, alpha,
     batch normalization, relu6, pointwise convolution,
     batch normalization and relu6 activation.
     # Arguments
-        inputs: Input tensor of shape `(rows, cols, channels)`
+        inputs: Tensor of shape `(rows, cols, channels)`
             (with `channels_last` data format) or
             (channels, rows, cols) (with `channels_first` data format).
         pointwise_conv_filters: Integer, the dimensionality of the output space

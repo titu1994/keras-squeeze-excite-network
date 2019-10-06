@@ -11,30 +11,33 @@ and that the input preprocessing function is also different (same as Xception).
     - []() # added when paper is published on Arxiv
 
 """
-from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import print_function
 
-import warnings
+from keras_squeeze_excite_network import TF
 
-from keras.models import Model
-from keras import layers
-from keras.layers import Activation
-from keras.layers import Dense
-from keras.layers import Reshape
-from keras.layers import Input
-from keras.layers import BatchNormalization
-from keras.layers import Conv2D
-from keras.layers import MaxPooling2D
-from keras.layers import AveragePooling2D
-from keras.layers import GlobalAveragePooling2D
-from keras.layers import GlobalMaxPooling2D
-from keras.engine.topology import get_source_inputs
-from keras.utils.data_utils import get_file
-from keras import backend as K
-from keras.applications.imagenet_utils import decode_predictions
-from keras.applications.imagenet_utils import _obtain_input_shape
+if TF:
+    from tensorflow.keras import backend as K
+    from tensorflow.keras import layers
+    from tensorflow.keras.layers import (Activation, Dense, Input, BatchNormalization,
+                                         Conv2D, MaxPooling2D, AveragePooling2D,
+                                         GlobalAveragePooling2D, GlobalMaxPooling2D)
+    from tensorflow.keras.models import Model
+    from tensorflow.python.keras.backend import is_keras_tensor
+    from tensorflow.python.keras.utils import get_source_inputs
+else:
+    from keras import backend as K
+    from keras import layers
+    from keras.layers import (Activation, Dense, Input, BatchNormalization,
+                              Conv2D, MaxPooling2D, AveragePooling2D,
+                              GlobalAveragePooling2D, GlobalMaxPooling2D)
+    from keras.models import Model
+    from keras.utils import get_source_inputs
 
-from se import squeeze_excite_block
+    is_keras_tensor = K.is_keras_tensor
+
+from keras_squeeze_excite_network.se import squeeze_excite_block
+from keras_squeeze_excite_network.utils import _obtain_input_shape
 
 WEIGHTS_PATH = ''
 WEIGHTS_PATH_NO_TOP = ''
@@ -50,7 +53,7 @@ def _conv2d_bn(x,
     """Utility function to apply conv + BN.
 
     # Arguments
-        x: input tensor.
+        x: input keras tensor.
         filters: filters in `Conv2D`.
         num_row: height of the convolution kernel.
         num_col: width of the convolution kernel.
@@ -64,8 +67,8 @@ def _conv2d_bn(x,
         Output tensor after applying `Conv2D` and `BatchNormalization`.
     """
     if name is not None:
-        bn_name = name + '_bn'
-        conv_name = name + '_conv'
+        bn_name = '{name}_bn'.format(name=name)
+        conv_name = '{name}_conv'.format(name=name)
     else:
         bn_name = None
         conv_name = None
@@ -148,7 +151,7 @@ def SEInceptionV3(include_top=True,
     if input_tensor is None:
         img_input = Input(shape=input_shape)
     else:
-        if not K.is_keras_tensor(input_tensor):
+        if not is_keras_tensor(input_tensor):
             img_input = Input(tensor=input_tensor, shape=input_shape)
         else:
             img_input = input_tensor
@@ -285,7 +288,7 @@ def SEInceptionV3(include_top=True,
         x = layers.concatenate(
             [branch1x1, branch7x7, branch7x7dbl, branch_pool],
             axis=channel_axis,
-            name='mixed' + str(5 + i))
+            name='mixed{}'.format(5 + i))
 
         # squeeze and excite block
         x = squeeze_excite_block(x)
@@ -339,7 +342,7 @@ def SEInceptionV3(include_top=True,
         branch3x3_1 = _conv2d_bn(branch3x3, 384, 1, 3)
         branch3x3_2 = _conv2d_bn(branch3x3, 384, 3, 1)
         branch3x3 = layers.concatenate(
-            [branch3x3_1, branch3x3_2], axis=channel_axis, name='mixed9_' + str(i))
+            [branch3x3_1, branch3x3_2], axis=channel_axis, name='mixed9_{i}'.format(i=i))
 
         branch3x3dbl = _conv2d_bn(x, 448, 1, 1)
         branch3x3dbl = _conv2d_bn(branch3x3dbl, 384, 3, 3)
@@ -354,7 +357,7 @@ def SEInceptionV3(include_top=True,
         x = layers.concatenate(
             [branch1x1, branch3x3, branch3x3dbl, branch_pool],
             axis=channel_axis,
-            name='mixed' + str(9 + i))
+            name='mixed{}'.format(9 + i))
 
         # squeeze and excite block
         x = squeeze_excite_block(x)

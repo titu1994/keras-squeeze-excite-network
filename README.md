@@ -1,7 +1,7 @@
 # Squeeze and Excitation Networks in Keras
 Implementation of [Squeeze and Excitation Networks](https://arxiv.org/pdf/1709.01507.pdf) in Keras 2.0.3+.
 
-<img src="https://github.com/titu1994/keras-squeeze-excite-network/blob/master/images/squeeze-excite-block.JPG?raw=true" height=50% width=100%>
+<img src="https://github.com/titu1994/keras-squeeze-excite-network/blob/master/images/squeeze-excite-block.JPG?raw=true" height=50% width=100% alt="squeeze-excite-block">
 
 ## Models
 Current models supported :
@@ -20,8 +20,12 @@ The block is simple to implement in Keras. It composes of a GlobalAveragePooling
 Shape inference can be done automatically in Keras. It can be imported from `se.py`.
 
 ```python
-def squeeze_excite_block(input, ratio=16):
-    init = input
+from tensorflow.keras.layers import GlobalAveragePooling2D, Reshape, Dense, Permute, multiply
+import tensorflow.keras.backend as K
+
+
+def squeeze_excite_block(tensor, ratio=16):
+    init = tensor
     channel_axis = 1 if K.image_data_format() == "channels_first" else -1
     filters = init._keras_shape[channel_axis]
     se_shape = (1, 1, filters)
@@ -40,6 +44,6 @@ def squeeze_excite_block(input, ratio=16):
 
 
 ## Addition of Squeeze and Excitation blocks to Inception and ResNet blocks
-<img src="https://github.com/titu1994/keras-squeeze-excite-network/blob/master/images/se-architectures.jpg?raw=true" height=50% width=50%> <img src="https://github.com/titu1994/keras-squeeze-excite-network/blob/master/images/SE-ResNet-architecture.jpg?raw=true" height=50% width=49%>
+<img src="https://github.com/titu1994/keras-squeeze-excite-network/blob/master/images/se-architectures.jpg?raw=true" height=50% width=50% alt="se-architectures"> <img src="https://github.com/titu1994/keras-squeeze-excite-network/blob/master/images/SE-ResNet-architecture.jpg?raw=true" height=50% width=49% alt="SE-ResNet-architecture">
 
 

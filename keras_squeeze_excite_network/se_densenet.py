@@ -1,38 +1,44 @@
-'''DenseNet models for Keras.
+"""DenseNet models for Keras.
 # Reference
 - [Densely Connected Convolutional Networks](https://arxiv.org/pdf/1608.06993.pdf)
 - [The One Hundred Layers Tiramisu: Fully Convolutional DenseNets for Semantic Segmentation](https://arxiv.org/pdf/1611.09326.pdf)
-'''
-from __future__ import print_function
+"""
 from __future__ import absolute_import
 from __future__ import division
+from __future__ import print_function
 
-import warnings
+from keras_squeeze_excite_network import TF
 
-from keras.models import Model
-from keras.layers.core import Dense, Dropout, Activation, Reshape
-from keras.layers.convolutional import Conv2D, Conv2DTranspose, UpSampling2D
-from keras.layers.pooling import AveragePooling2D, MaxPooling2D
-from keras.layers.pooling import GlobalAveragePooling2D
-from keras.layers import Input
-from keras.layers.merge import concatenate
-from keras.layers.normalization import BatchNormalization
-from keras.regularizers import l2
-from keras.utils.layer_utils import convert_all_kernels_in_model, convert_dense_weights_data_format
-from keras.utils.data_utils import get_file
-from keras.engine.topology import get_source_inputs
-from keras.applications.imagenet_utils import _obtain_input_shape
-from keras.applications.imagenet_utils import decode_predictions
-import keras.backend as K
+if TF:
+    import tensorflow.keras.backend as K
+    from tensorflow.keras.layers import (AveragePooling2D, MaxPooling2D, BatchNormalization,
+                                         Conv2D, Dense, Dropout, Activation, GlobalAveragePooling2D,
+                                         Input, concatenate)
+    from tensorflow.keras.models import Model
+    from tensorflow.keras.regularizers import l2
+    from tensorflow.python.keras.backend import is_keras_tensor
+    from tensorflow.python.keras.utils import get_source_inputs
+    from keras_squeeze_excite_network.utils import _obtain_input_shape
+else:
+    import keras.backend as K
+    from keras.layers import (AveragePooling2D, MaxPooling2D, BatchNormalization,
+                              Conv2D, Dense, Dropout, Activation, GlobalAveragePooling2D,
+                              Input, concatenate)
+    from keras.models import Model
+    from keras.regularizers import l2
 
-from se import squeeze_excite_block
+    is_keras_tensor = K.is_keras_tensor
+    from keras.utils import get_source_inputs
+    from keras_applications.imagenet_utils import _obtain_input_shape
+
+from keras_squeeze_excite_network.se import squeeze_excite_block
 
 
 def preprocess_input(x, data_format=None):
-    """Preprocesses a tensor encoding a batch of images.
+    """Preprocesses a input_tensor encoding a batch of images.
 
     # Arguments
-        x: input Numpy tensor, 4D.
+        x: 4D numpy input
         data_format: data format of the image tensor.
 
     # Returns
@@ -84,7 +90,7 @@ def SEDenseNet(input_shape=None,
                input_tensor=None,
                classes=10,
                activation='softmax'):
-    '''Instantiate the SE DenseNet architecture
+    """Instantiate the SE DenseNet architecture
         # Arguments
             input_shape: optional shape tuple, only to be specified
                 if `include_top` is False (otherwise the input shape
@@ -124,7 +130,7 @@ def SEDenseNet(input_shape=None,
                 Note that if sigmoid is used, classes must be 1.
         # Returns
             A Keras model instance.
-        '''
+        """
 
     if weights not in {'imagenet', None}:
         raise ValueError('The `weights` argument should be either '
@@ -151,7 +157,7 @@ def SEDenseNet(input_shape=None,
     if input_tensor is None:
         img_input = Input(shape=input_shape)
     else:
-        if not K.is_keras_tensor(input_tensor):
+        if not is_keras_tensor(input_tensor):
             img_input = Input(tensor=input_tensor, shape=input_shape)
         else:
             img_input = input_tensor
@@ -258,7 +264,7 @@ def SEDenseNetImageNet161(input_shape=None,
 
 
 def __conv_block(ip, nb_filter, bottleneck=False, dropout_rate=None, weight_decay=1e-4):
-    ''' Apply BatchNorm, Relu, 3x3 Conv2D, optional bottleneck block and dropout
+    """ Apply BatchNorm, Relu, 3x3 Conv2D, optional bottleneck block and dropout
     Args:
         ip: Input keras tensor
         nb_filter: number of filters
@@ -266,7 +272,7 @@ def __conv_block(ip, nb_filter, bottleneck=False, dropout_rate=None, weight_deca
         dropout_rate: dropout rate
         weight_decay: weight decay factor
     Returns: keras tensor with batch_norm, relu and convolution2d added (optional bottleneck)
-    '''
+    """
     concat_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
     x = BatchNormalization(axis=concat_axis, epsilon=1.1e-5)(ip)
@@ -289,7 +295,7 @@ def __conv_block(ip, nb_filter, bottleneck=False, dropout_rate=None, weight_deca
 
 def __dense_block(x, nb_layers, nb_filter, growth_rate, bottleneck=False, dropout_rate=None, weight_decay=1e-4,
                   grow_nb_filters=True, return_concat_list=False):
-    ''' Build a dense_block where the output of each conv_block is fed to subsequent ones
+    """ Build a dense_block where the output of each conv_block is fed to subsequent ones
     Args:
         x: keras tensor
         nb_layers: the number of layers of conv_block to append to the model.
@@ -301,7 +307,7 @@ def __dense_block(x, nb_layers, nb_filter, growth_rate, bottleneck=False, dropou
         grow_nb_filters: flag to decide to allow number of filters to grow
         return_concat_list: return the list of feature maps along with the actual output
     Returns: keras tensor with nb_layers of conv_block appended
-    '''
+    """
     concat_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
     x_list = [x]
@@ -325,16 +331,15 @@ def __dense_block(x, nb_layers, nb_filter, growth_rate, bottleneck=False, dropou
 
 
 def __transition_block(ip, nb_filter, compression=1.0, weight_decay=1e-4):
-    ''' Apply BatchNorm, Relu 1x1, Conv2D, optional compression, dropout and Maxpooling2D
+    """ Apply BatchNorm, Relu 1x1, Conv2D, optional compression, dropout and Maxpooling2D
     Args:
         ip: keras tensor
         nb_filter: number of filters
         compression: calculated as 1 - reduction. Reduces the number of feature maps
                     in the transition block.
-        dropout_rate: dropout rate
         weight_decay: weight decay factor
     Returns: keras tensor, after applying batch_norm, relu-conv, dropout, maxpool
-    '''
+    """
     concat_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
     x = BatchNormalization(axis=concat_axis, epsilon=1.1e-5)(ip)
@@ -352,7 +357,7 @@ def __transition_block(ip, nb_filter, compression=1.0, weight_decay=1e-4):
 def __create_dense_net(nb_classes, img_input, include_top, depth=40, nb_dense_block=3, growth_rate=12, nb_filter=-1,
                        nb_layers_per_block=-1, bottleneck=False, reduction=0.0, dropout_rate=None, weight_decay=1e-4,
                        subsample_initial_block=False, activation='softmax'):
-    ''' Build the DenseNet model
+    """ Build the DenseNet model
     Args:
         nb_classes: number of classes
         img_input: tuple of shape (channels, rows, columns) or (rows, columns, channels)
@@ -373,23 +378,22 @@ def __create_dense_net(nb_classes, img_input, include_top, depth=40, nb_dense_bl
         weight_decay: weight decay rate
         subsample_initial_block: Set to True to subsample the initial convolution and
                 add a MaxPool2D before the dense blocks are added.
-        subsample_initial:
         activation: Type of activation at the top layer. Can be one of 'softmax' or 'sigmoid'.
                 Note that if sigmoid is used, classes must be 1.
     Returns: keras tensor with nb_layers of conv_block appended
-    '''
+    """
 
     concat_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
     if reduction != 0.0:
-        assert reduction <= 1.0 and reduction > 0.0, 'reduction value must lie between 0.0 and 1.0'
+        assert 1.0 >= reduction > 0.0, 'reduction value must lie between 0.0 and 1.0'
 
     # layers in each dense block
     if type(nb_layers_per_block) is list or type(nb_layers_per_block) is tuple:
         nb_layers = list(nb_layers_per_block)  # Convert tuple to list
 
-        assert len(nb_layers) == (nb_dense_block), 'If list, nb_layer is used as provided. ' \
-                                                   'Note that list size must be (nb_dense_block)'
+        assert len(nb_layers) == nb_dense_block, 'If list, nb_layer is used as provided. ' \
+                                                 'Note that list size must be (nb_dense_block)'
         final_nb_layer = nb_layers[-1]
         nb_layers = nb_layers[:-1]
     else:
