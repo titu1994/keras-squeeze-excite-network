@@ -24,9 +24,9 @@ if TF:
                                          Concatenate, Conv2D, Dense, GlobalAveragePooling2D,
                                          GlobalMaxPooling2D, Input, Lambda, MaxPooling2D)
     from tensorflow.keras import backend as K
-    from tensorflow.python.keras.applications import imagenet_utils
-    from tensorflow.python.keras.backend import is_keras_tensor
-    from tensorflow.python.keras.utils import get_source_inputs
+    from tensorflow.keras.applications import imagenet_utils
+    from tensorflow.keras.backend import is_keras_tensor
+    from tensorflow.keras.utils import get_source_inputs
 else:
     from keras.models import Model
     from keras.layers import (Activation, AveragePooling2D, BatchNormalization,

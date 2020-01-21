@@ -19,9 +19,9 @@ if TF:
                                          Input, MaxPooling2D, add)
     from tensorflow.keras.models import Model
     from tensorflow.keras.regularizers import l2
-    from tensorflow.python.keras.applications.imagenet_utils import decode_predictions
-    from tensorflow.python.keras.backend import is_keras_tensor
-    from tensorflow.python.keras.utils import get_source_inputs
+    from tensorflow.keras.applications.imagenet_utils import decode_predictions
+    from tensorflow.keras.backend import is_keras_tensor
+    from tensorflow.keras.utils import get_source_inputs
 else:
     from keras import backend as K
     from keras.applications.resnet50 import preprocess_input

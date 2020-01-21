@@ -16,8 +16,8 @@ if TF:
                                          Input, concatenate)
     from tensorflow.keras.models import Model
     from tensorflow.keras.regularizers import l2
-    from tensorflow.python.keras.backend import is_keras_tensor
-    from tensorflow.python.keras.utils import get_source_inputs
+    from tensorflow.keras.backend import is_keras_tensor
+    from tensorflow.keras.utils import get_source_inputs
     from keras_squeeze_excite_network.utils import _obtain_input_shape
 else:
     import keras.backend as K
