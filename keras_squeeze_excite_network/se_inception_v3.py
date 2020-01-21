@@ -23,8 +23,8 @@ if TF:
                                          Conv2D, MaxPooling2D, AveragePooling2D,
                                          GlobalAveragePooling2D, GlobalMaxPooling2D)
     from tensorflow.keras.models import Model
-    from tensorflow.python.keras.backend import is_keras_tensor
-    from tensorflow.python.keras.utils import get_source_inputs
+    from tensorflow.keras.backend import is_keras_tensor
+    from tensorflow.keras.utils import get_source_inputs
 else:
     from keras import backend as K
     from keras import layers

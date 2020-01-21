@@ -15,10 +15,10 @@ if TF:
     from tensorflow.keras.layers import (Input, Activation, Dropout, Reshape, BatchNormalization,
                                          GlobalAveragePooling2D, GlobalMaxPooling2D, Conv2D)
     from tensorflow.keras.models import Model
-    from tensorflow.python.keras.applications import imagenet_utils
-    from tensorflow.python.keras.backend import is_keras_tensor, depthwise_conv2d
-    from tensorflow.python.keras.engine import InputSpec
-    from tensorflow.python.keras.utils import conv_utils, get_source_inputs
+    from tensorflow.keras.applications import imagenet_utils
+    from tensorflow.keras.backend import is_keras_tensor, depthwise_conv2d
+    from tensorflow.keras.engine import InputSpec
+    from tensorflow.keras.utils import conv_utils, get_source_inputs
 else:
     from keras import initializers, regularizers, constraints, backend as K
     from keras.layers import (Input, Activation, Dropout, Reshape, BatchNormalization,
