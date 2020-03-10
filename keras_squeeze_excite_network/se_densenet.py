@@ -13,7 +13,7 @@ if TF:
     import tensorflow.keras.backend as K
     from tensorflow.keras.layers import (AveragePooling2D, MaxPooling2D, BatchNormalization,
                                          Conv2D, Dense, Dropout, Activation, GlobalAveragePooling2D,
-                                         Input, concatenate)
+                                         Input, concatenate, ZeroPadding2D)
     from tensorflow.keras.models import Model
     from tensorflow.keras.regularizers import l2
     from tensorflow.keras.backend import is_keras_tensor
@@ -23,7 +23,7 @@ else:
     import keras.backend as K
     from keras.layers import (AveragePooling2D, MaxPooling2D, BatchNormalization,
                               Conv2D, Dense, Dropout, Activation, GlobalAveragePooling2D,
-                              Input, concatenate)
+                              Input, concatenate, ZeroPadding2D)
     from keras.models import Model
     from keras.regularizers import l2
 
@@ -420,13 +420,15 @@ def __create_dense_net(nb_classes, img_input, include_top, depth=40, nb_dense_bl
     else:
         initial_kernel = (3, 3)
         initial_strides = (1, 1)
-
+    
+    x = ZeroPadding2D(padding=((3, 3), (3, 3)))(img_input)
     x = Conv2D(nb_filter, initial_kernel, kernel_initializer='he_normal', padding='same',
-               strides=initial_strides, use_bias=False, kernel_regularizer=l2(weight_decay))(img_input)
+               strides=initial_strides, use_bias=False, kernel_regularizer=l2(weight_decay))(x)
 
     if subsample_initial_block:
         x = BatchNormalization(axis=concat_axis, epsilon=1.1e-5)(x)
         x = Activation('relu')(x)
+        x = ZeroPadding2D(padding=((1, 1), (1, 1)))(x)
         x = MaxPooling2D((3, 3), strides=(2, 2), padding='same')(x)
 
     # Add dense blocks
